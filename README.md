@@ -23,7 +23,6 @@ Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin 
 
 | Setting | What to put |
 | --- | --- |
-| `appsScriptUrl` | The Web App URL from step 2 |
 | `shopName`, `ownerName`, `pickupArea`, `pickupHours`, `pickupWindows` | Already filled in, change them if needed |
 
 ### 2. Set up the Google backend
@@ -41,14 +40,14 @@ Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin 
    | `NOTIFY_EMAIL` | Optional. Also emails each new inquiry here |
 
 5. Click **Deploy > New deployment > Web app**, with *Execute as: Me* and *Who has access: Anyone*. Approve the permissions Google asks for.
-6. Copy the `/exec` URL into `appsScriptUrl` in `src/config.ts`.
+6. In Netlify, add the `/exec` URL as the environment variable `VITE_APPS_SCRIPT_URL`, then redeploy.
 7. Log in to admin on the site and press **Masukkan 14 pokok** to add the starter plants. Their names, prices and stock are placeholders, so correct them there.
 
 If you change `Code.gs` later, use **Deploy > Manage deployments > Edit > New version**, otherwise the old code keeps running.
 
 ### 3. Publish
 
-In the repository, set **Settings > Pages > Source** to **GitHub Actions** once. After that, every push to `main` is tested, built and deployed.
+The site is hosted on Netlify, connected to this repository. [`netlify.toml`](netlify.toml) sets the build and the security headers, so every push to `main` is built and deployed. GitHub Actions runs the tests on each push too.
 
 ## Using the admin page
 

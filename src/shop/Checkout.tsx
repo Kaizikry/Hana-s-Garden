@@ -11,7 +11,6 @@ import { SENT_KEY } from "./ThankYou";
 
 const LOG_TIMEOUT_MS = 4000;
 const EMPTY = { name: "", phone: "", day: "", time: "", notes: "" };
-const DAY_OPTIONS = pickupDays().map((d) => ({ value: d.value, label: <><b>{d.label}</b><small>{d.date}</small></> }));
 const TIME_OPTIONS = config.pickupWindows.map((value) => ({ value, label: <b>{value}</b> }));
 
 function validate(form: typeof EMPTY) {
@@ -29,6 +28,8 @@ export function Checkout() {
   const [errors, setErrors] = useState<Partial<typeof EMPTY>>({});
   const [sending, setSending] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // Worked out on each render, because a tab left open overnight would otherwise keep yesterday's dates.
+  const dayOptions = pickupDays().map((d) => ({ value: d.value, label: <><b>{d.label}</b><small>{d.date}</small></> }));
 
   const update = (field: keyof typeof EMPTY) => (value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
@@ -98,7 +99,7 @@ export function Checkout() {
               <input name="phone" type="tel" autoComplete="tel" placeholder="012-345 6789" value={form.phone} onChange={(e) => update("phone")(e.target.value)} />
             </Field>
           </div>
-          <Choices label="Hari ambil" name="day" options={DAY_OPTIONS} value={form.day} error={errors.day} onChange={update("day")} />
+          <Choices label="Hari ambil" name="day" options={dayOptions} value={form.day} error={errors.day} onChange={update("day")} />
           <Choices label="Masa ambil" name="time" options={TIME_OPTIONS} value={form.time} error={errors.time} onChange={update("time")} />
           <Field label="Nota atau soalan (pilihan)">
             <textarea name="notes" rows={3} placeholder="cth. Boleh pilihkan yang daun lebih lebat?" value={form.notes} onChange={(e) => update("notes")(e.target.value)} />
@@ -116,6 +117,7 @@ export function Checkout() {
             {sending ? "Sedang merekod…" : "Hantar Pertanyaan via WhatsApp"}
           </button>
           <p className="muted small">Harga anggaran. {config.ownerName} akan sahkan stok dan harga akhir melalui WhatsApp.</p>
+          <p className="muted small">Nama dan nombor telefon anda direkod dan hanya digunakan oleh {config.ownerName} untuk urus tempahan ini. Untuk semak atau padam maklumat anda, hubungi {config.ownerName} melalui WhatsApp.</p>
         </aside>
       </form>
     </div>

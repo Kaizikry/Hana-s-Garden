@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 const backendOrigins = [
@@ -7,7 +7,6 @@ const backendOrigins = [
   ...(process.env.VITE_APPS_SCRIPT_URL ? [new URL(process.env.VITE_APPS_SCRIPT_URL).origin] : []),
 ];
 
-/** GitHub Pages can't set response headers, so the security policy has to go in a meta tag. */
 const CONTENT_SECURITY_POLICY = [
   "default-src 'none'",
   "script-src 'self'",
@@ -19,18 +18,28 @@ const CONTENT_SECURITY_POLICY = [
   "form-action 'none'",
 ].join("; ");
 
+// WhatsApp needs a full address for the preview image, and Netlify supplies the site's as URL.
+const siteUrl = process.env.URL;
+const shareTags: HtmlTagDescriptor[] = siteUrl
+  ? [
+      { tag: "meta", attrs: { property: "og:url", content: siteUrl }, injectTo: "head" },
+      { tag: "meta", attrs: { property: "og:image", content: `${siteUrl}/images/bromelia-14.jpeg` }, injectTo: "head" },
+    ]
+  : [];
+
 // Build only, because the dev server relies on inline scripts for hot reload.
-const contentSecurityPolicy: Plugin = {
-  name: "content-security-policy",
+const productionTags: Plugin = {
+  name: "production-tags",
   apply: "build",
   transformIndexHtml: () => [
     { tag: "meta", attrs: { "http-equiv": "Content-Security-Policy", content: CONTENT_SECURITY_POLICY }, injectTo: "head-prepend" },
+    ...shareTags,
   ],
 };
 
-// Relative base so the build works under github.io/<repo>/ without knowing the repo name.
+// Relative base so the build works at any address without knowing it.
 export default defineConfig({
   base: "./",
-  plugins: [react(), contentSecurityPolicy],
+  plugins: [react(), productionTags],
   server: { port: 5173 },
 });

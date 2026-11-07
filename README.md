@@ -1,78 +1,53 @@
 # Hana's Garden
 
-A plant catalog for a home garden in Kampung Undang, Terengganu. Customers fill a basket and send one inquiry over WhatsApp for self-pickup. Each inquiry is also logged to a Google Sheet, and a passcode-protected admin page manages stock, photos and inquiries from a phone.
+Potted plants from my family's home garden in Kampung Undang, Terengganu. Have a look at what's growing, pick a few, and reserve them with one WhatsApp message. Then come by and collect them.
 
-Built with React and Vite. Google Sheets stores the data, Google Drive stores new photos, and Google Apps Script connects them. There is no server to pay for.
+**[Visit the shop](https://tubular-figolla-57c4ed.netlify.app)**
 
-## Run it locally
+![The Hana's Garden home page, with three bromeliad photos in arch frames and a green band reading "Ambil sendiri di Kampung Undang, Terengganu"](docs/shop.jpg)
 
-```bash
-npm install
-npm run dev
-```
+## Untuk pelanggan
 
-Also available: `npm test` and `npm run build`.
+Hana's Garden ialah laman pokok keluarga kami di Kampung Undang. Lihat pokok yang ada, masukkan ke bakul, dan hantar satu pertanyaan terus ke WhatsApp Hana. Hana akan sahkan stok dan harga, kemudian anda datang ambil sendiri.
 
-Until the backend is connected, the site runs in **demo mode** with the 14 starter plants. Changes stay in your own browser, and the admin passcode is `123456`.
+- **Ambil sendiri:** Kampung Undang, Terengganu
+- **Waktu:** setiap hari, 9 pagi hingga 5 petang
+- Untuk jiran sekampung, kawan-kawan dan sesiapa sahaja di sekitar Terengganu yang boleh singgah
 
-## Going live
+## About the garden
 
-### 1. Set the shop details
+Hana's Garden is my mom's garden. She grows plants at home, like the bromeliads in the photos above, and sells them to neighbours, friends and family around Terengganu. Pickup only, so there's no delivery or shipping.
 
-Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin passcode and WhatsApp number never go there.
+I built this site for her so people can see what she has before they ask, and she can keep track of every request in one place.
 
-| Setting | What to put |
-| --- | --- |
-| `shopName`, `ownerName`, `pickupArea`, `pickupHours`, `pickupWindows` | Already filled in, change them if needed |
+## How ordering works
 
-### 2. Set up the Google backend
+1. **Browse:** every plant has a photo, an estimated price, and whether it's in stock.
+2. **Fill a basket:** pick as many plants as you like and set how many of each.
+3. **Choose a pickup time:** any of the next 7 days, morning or afternoon.
+4. **Send on WhatsApp:** WhatsApp opens with your list already written. Press send, and Hana replies to confirm stock and the final price.
+5. **Collect:** pick the plants up in Kampung Undang.
 
-1. Create a Google Sheet. The `Inventory` and `Inquiries` tabs are created on first use.
-2. Create a Google Drive folder for plant photos and copy its ID from the folder's URL.
-3. In the sheet, open **Extensions > Apps Script** and replace the contents with [`backend/Code.gs`](backend/Code.gs).
-4. Open **Project Settings > Script properties** and add:
+There's no app to install, no account to make, and no online payment. All you need is WhatsApp.
 
-   | Property | Value |
-   | --- | --- |
-   | `ADMIN_PIN` | Your admin passcode. It must be exactly 6 digits to work with the keypad. Avoid birthdays and `123456` |
-   | `WHATSAPP_NUMBER` | The number customers message, like `60123456789` or `0123456789` |
-   | `DRIVE_FOLDER_ID` | The folder ID from step 2 |
-   | `NOTIFY_EMAIL` | Optional. Also emails each new inquiry here |
+## What it makes easier
 
-5. Click **Deploy > New deployment > Web app**, with *Execute as: Me* and *Who has access: Anyone*. Approve the permissions Google asks for.
-6. In Netlify, add the `/exec` URL as the environment variable `VITE_APPS_SCRIPT_URL`, then redeploy.
-7. Log in to admin on the site and press **Masukkan 14 pokok** to add the starter plants. Their names, prices and stock are placeholders, so correct them there.
+**For customers**
 
-If you change `Code.gs` later, use **Deploy > Manage deployments > Edit > New version**, otherwise the old code keeps running.
+- You can see what's available without messaging first to ask "ada lagi tak?"
+- Prices are shown up front. They're estimates, and Hana confirms the final price.
+- One message carries the whole list, instead of sending photos back and forth.
 
-### 3. Publish
+**For my mom**
 
-The site is hosted on Netlify, connected to this repository. [`netlify.toml`](netlify.toml) sets the build and the security headers, so every push to `main` is built and deployed. GitHub Actions runs the tests on each push too.
+- Every request is saved to a Google Sheet, so none get lost in a busy WhatsApp chat.
+- From her phone, she can mark a plant sold out, change a price, or add a new plant with a photo, behind a 6-digit passcode.
+- It costs nothing to run, because it uses the free plans of Netlify and Google.
 
-## Using the admin page
+## Under the hood
 
-Open **Log masuk admin** in the footer, or add `#/admin` to the site address.
+A React and TypeScript site built with Vite and hosted on Netlify. Google Sheets holds the plants and requests, Google Drive holds new photos, and a small Google Apps Script connects them, so there's no server to pay for or look after.
 
-- **Inventori:** switch a plant between in stock and sold out, or add, edit and delete plants. Photos are shrunk in the browser before uploading.
-- **Pertanyaan:** see every inquiry, move it through Baru, Disahkan and Selesai, and press **Balas** to reply on WhatsApp.
-- After 5 wrong passcodes, admin locks for 15 minutes for everyone, including you. Anyone already logged in stays logged in. To unlock early, delete `pinLockedUntil` from Script properties.
-- A login lasts up to 6 hours, or until **Log keluar**.
+The admin passcode, WhatsApp number and customer details are never stored in this repository. Tests, including attacks an outsider might try, run on every push.
 
-## Security
-
-- **Private, never in this repository:** the admin passcode, WhatsApp number and Drive folder ID (Script properties), and customer details (the Google Sheet). Don't share the sheet.
-- **Public on purpose:** this code, the plant list, and the Apps Script URL, which every visitor's browser has to call. None of them unlock anything.
-- **The WhatsApp number** isn't in this code, but any visitor can find it, because their browser needs it to open the chat.
-- `tests/security.test.ts` runs outsider attacks against `backend/Code.gs` on every push.
-
-## Where things are
-
-| Path | What it is |
-| --- | --- |
-| `src/shop/` | Catalog, plant page, basket, checkout, thank-you page |
-| `src/admin/` | Keypad, inventory, plant form, inquiries |
-| `src/lib/api.ts` | All backend calls, plus the demo-mode stand-in |
-| `src/data/plants.ts` | The 14 starter plants |
-| `public/images/` | The plant photos |
-| `backend/Code.gs` | The Google Apps Script backend |
-| `tests/` | Tests for the helpers and for `Code.gs`, run against fake Google services |
+To run it yourself or connect your own Google Sheet, see **[docs/SETUP.md](docs/SETUP.md)**.

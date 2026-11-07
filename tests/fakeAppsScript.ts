@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
@@ -39,7 +40,18 @@ export function loadBackend(properties: Record<string, string> = { ADMIN_PIN: "4
         },
       }),
     },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: (k: string) => properties[k] ?? null }) },
+    console: { error() {} },
+    PropertiesService: {
+      getScriptProperties: () => ({
+        getProperty: (k: string) => properties[k] ?? null,
+        setProperty: (k: string, v: string) => {
+          properties[k] = v;
+        },
+        deleteProperty: (k: string) => {
+          delete properties[k];
+        },
+      }),
+    },
     CacheService: {
       getScriptCache: () => ({
         get: (k: string) => cache.get(k) ?? null,
@@ -50,6 +62,7 @@ export function loadBackend(properties: Record<string, string> = { ADMIN_PIN: "4
     LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
     MailApp: { sendEmail: (m: unknown) => sentEmails.push(m) },
     Utilities: {
+      getUuid: () => randomUUID(),
       base64Decode: (s: string) => Buffer.from(s, "base64"),
       newBlob: (_b: unknown, mime: string) => ({ mime }),
     },
@@ -74,10 +87,13 @@ export function loadBackend(properties: Record<string, string> = { ADMIN_PIN: "4
 
   return {
     sheets,
+    cache,
+    properties,
     sentEmails,
     uploads,
     rowRewrites,
     get: () => JSON.parse(fn.doGet().text),
     post: (body: unknown) => JSON.parse(fn.doPost({ postData: { contents: JSON.stringify(body) } }).text),
+    postRaw: (contents: string) => JSON.parse(fn.doPost({ postData: { contents } }).text),
   };
 }

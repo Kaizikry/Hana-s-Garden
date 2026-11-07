@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { fetchPlants } from "./lib/api";
+import { fetchShop } from "./lib/api";
 import { local, readJson, writeJson } from "./lib/storage";
 import { basketTotal } from "./lib/whatsapp";
 import { inStock, type BasketItem, type Plant } from "./types";
@@ -8,15 +8,17 @@ const BASKET_KEY = "garden.basket";
 
 function useStoreValue() {
   const [plants, setPlants] = useState<Plant[]>([]);
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [quantities, setQuantities] = useState<Record<string, number>>(() => readJson(local, BASKET_KEY) ?? {});
   const [basketOpen, setBasketOpen] = useState(false);
 
   const reload = useCallback(() => {
     setStatus("loading");
-    fetchPlants()
-      .then((fresh) => {
-        setPlants(fresh);
+    fetchShop()
+      .then((shop) => {
+        setPlants(shop.plants);
+        setWhatsappNumber(shop.whatsappNumber);
         setStatus("ready");
       })
       .catch(() => setStatus("error"));
@@ -53,7 +55,7 @@ function useStoreValue() {
   );
 
   return {
-    plants, setPlants, status, reload, lines, items, setQty, clearBasket, basketOpen, setBasketOpen,
+    plants, setPlants, whatsappNumber, status, reload, lines, items, setQty, clearBasket, basketOpen, setBasketOpen,
     qtyOf: (id: string) => quantities[id] ?? 0,
     count: items.reduce((sum, item) => sum + item.qty, 0),
     total: basketTotal(items),

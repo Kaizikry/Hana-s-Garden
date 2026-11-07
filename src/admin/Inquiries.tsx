@@ -12,7 +12,7 @@ const NEXT: Record<InquiryStatus, { label: string; status: InquiryStatus }> = {
 };
 
 interface Props {
-  pin: string;
+  token: string;
   inquiries: InquiryRecord[] | null;
   failed: boolean;
   retry: () => void;
@@ -20,7 +20,7 @@ interface Props {
   onError: (err: unknown) => string;
 }
 
-export function Inquiries({ pin, inquiries, failed, retry, setInquiries, onError }: Props) {
+export function Inquiries({ token, inquiries, failed, retry, setInquiries, onError }: Props) {
   const [filter, setFilter] = useState<InquiryStatus | "Semua">("Semua");
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +34,7 @@ export function Inquiries({ pin, inquiries, failed, retry, setInquiries, onError
     setBusyId(q.inquiryId);
     setError("");
     try {
-      await setInquiryStatus(pin, q.inquiryId, status);
+      await setInquiryStatus(token, q.inquiryId, status);
       setInquiries((list) => list?.map((x) => (x.inquiryId === q.inquiryId ? { ...x, status } : x)) ?? null);
     } catch (err) {
       setError(onError(err));

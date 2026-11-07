@@ -1,25 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
 import { config, DEMO_PIN, isDemo, PIN_LENGTH } from "../config";
-import { ApiError, fetchInquiries, verifyPin } from "../lib/api";
+import { ApiError, fetchInquiries, logout, verifyPin } from "../lib/api";
 import { readJson, session, writeJson } from "../lib/storage";
 import type { InquiryRecord } from "../types";
 import { Inquiries } from "./Inquiries";
 import { Inventory } from "./Inventory";
 
-const PIN_KEY = "garden.adminPin";
+const TOKEN_KEY = "garden.adminSession";
 
 export function Admin() {
   // Kept for this tab only, so picking a photo on a phone doesn't log you out if the tab reloads.
-  const [pin, setPinState] = useState(() => readJson<string>(session, PIN_KEY));
-  const setPin = (next: string | null) => {
-    setPinState(next);
-    if (next) writeJson(session, PIN_KEY, next);
-    else session?.removeItem(PIN_KEY);
-  };
-  return pin ? <Dashboard pin={pin} onLogout={() => setPin(null)} /> : <PinPad onUnlock={setPin} />;
+  const [token, setTokenState] = useState(() => readJson<string>(session, TOKEN_KEY));
+  const setToken = useCallback((next: string | null) => {
+    setTokenState(next);
+    if (next) writeJson(session, TOKEN_KEY, next);
+    else session?.removeItem(TOKEN_KEY);
+  }, []);
+  const signOut = useCallback(() => {
+    if (token) logout(token).catch(() => {}); // The session expires by itself if this fails.
+    setToken(null);
+  }, [token, setToken]);
+  return token ? <Dashboard token={token} onLogout={signOut} onExpired={() => setToken(null)} /> : <PinPad onUnlock={setToken} />;
 }
 
-function PinPad({ onUnlock }: { onUnlock: (pin: string) => void }) {
+function PinPad({ onUnlock }: { onUnlock: (token: string) => void }) {
   const [digits, setDigits] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -42,7 +46,7 @@ function PinPad({ onUnlock }: { onUnlock: (pin: string) => void }) {
     if (digits.length !== PIN_LENGTH) return;
     setBusy(true);
     verifyPin(digits)
-      .then(() => onUnlock(digits))
+      .then(onUnlock)
       .catch((err) => {
         setError(err instanceof ApiError ? err.message : "Tidak dapat dihubungi. Semak sambungan internet dan cuba lagi.");
         setDigits("");
@@ -69,25 +73,25 @@ function PinPad({ onUnlock }: { onUnlock: (pin: string) => void }) {
   );
 }
 
-function Dashboard({ pin, onLogout }: { pin: string; onLogout: () => void }) {
+function Dashboard({ token, onLogout, onExpired }: { token: string; onLogout: () => void; onExpired: () => void }) {
   const [tab, setTab] = useState<"inventory" | "inquiries">("inventory");
   const [inquiries, setInquiries] = useState<InquiryRecord[] | null>(null);
   const [inquiriesFailed, setInquiriesFailed] = useState(false);
 
   const handleError = useCallback((err: unknown): string => {
-    if (err instanceof ApiError && err.code === "BAD_PIN") onLogout();
+    if (err instanceof ApiError && err.code === "BAD_SESSION") onExpired();
     return err instanceof ApiError ? err.message : "Tidak berjaya. Semak sambungan internet dan cuba lagi.";
-  }, [onLogout]);
+  }, [onExpired]);
 
   const loadInquiries = useCallback(() => {
     setInquiriesFailed(false);
-    fetchInquiries(pin)
+    fetchInquiries(token)
       .then(setInquiries)
       .catch((err) => {
         handleError(err);
         setInquiriesFailed(true);
       });
-  }, [pin, handleError]);
+  }, [token, handleError]);
   useEffect(loadInquiries, [loadInquiries]);
 
   const newCount = inquiries?.filter((q) => q.status === "Baru").length ?? 0;
@@ -109,8 +113,8 @@ function Dashboard({ pin, onLogout }: { pin: string; onLogout: () => void }) {
       </header>
       {isDemo && <p className="demo-note">Mod demo: perubahan hanya disimpan dalam pelayar ini.</p>}
       {tab === "inventory"
-        ? <Inventory pin={pin} onError={handleError} />
-        : <Inquiries pin={pin} inquiries={inquiries} failed={inquiriesFailed} retry={loadInquiries} setInquiries={setInquiries} onError={handleError} />}
+        ? <Inventory token={token} onError={handleError} />
+        : <Inquiries token={token} inquiries={inquiries} failed={inquiriesFailed} retry={loadInquiries} setInquiries={setInquiries} onError={handleError} />}
     </div>
   );
 }

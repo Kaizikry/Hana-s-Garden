@@ -9,7 +9,7 @@ import { useStore } from "../store";
 import { inStock, type Plant, type PlantDraft } from "../types";
 import { PlantForm } from "./PlantForm";
 
-export function Inventory({ pin, onError }: { pin: string; onError: (err: unknown) => string }) {
+export function Inventory({ token, onError }: { token: string; onError: (err: unknown) => string }) {
   const { plants, setPlants, status, reload } = useStore();
   const [editing, setEditing] = useState<Plant | "new" | null>(null);
   const [deleting, setDeleting] = useState<Plant | null>(null);
@@ -35,24 +35,24 @@ export function Inventory({ pin, onError }: { pin: string; onError: (err: unknow
     // Switching on with nothing in stock can't work, so ask for the new count instead.
     if (!inStock(plant) && plant.stock <= 0) return setEditing(plant);
     const next: Plant = { ...plant, status: plant.status === "Sold Out" ? "Available" : "Sold Out" };
-    return run(plant.id, async () => upsert(await savePlant(pin, next)));
+    return run(plant.id, async () => upsert(await savePlant(token, next)));
   };
 
   const save = async (draft: PlantDraft) => {
-    upsert(await savePlant(pin, draft));
+    upsert(await savePlant(token, draft));
     setEditing(null);
   };
 
   const remove = () =>
     run("delete", async () => {
-      await deletePlant(pin, deleting!.id);
+      await deletePlant(token, deleting!.id);
       setPlants((list) => list.filter((p) => p.id !== deleting!.id));
       setDeleting(null);
     });
 
   const addStarters = () =>
     run("starters", async () => {
-      for (const starter of STARTER_PLANTS) upsert(await savePlant(pin, starter));
+      for (const starter of STARTER_PLANTS) upsert(await savePlant(token, starter));
     });
 
   const available = plants.filter(inStock).length;

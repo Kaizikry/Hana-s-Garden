@@ -19,11 +19,10 @@ Until the backend is connected, the site runs in **demo mode** with the 14 start
 
 ### 1. Set the shop details
 
-Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin passcode never goes there.
+Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin passcode and WhatsApp number never go there.
 
 | Setting | What to put |
 | --- | --- |
-| `whatsappNumber` | Country code and digits only, like `60123456789` |
 | `appsScriptUrl` | The Web App URL from step 2 |
 | `shopName`, `ownerName`, `pickupArea`, `pickupHours`, `pickupWindows` | Already filled in, change them if needed |
 
@@ -36,7 +35,8 @@ Edit [`src/config.ts`](src/config.ts). Everything in it is public, so the admin 
 
    | Property | Value |
    | --- | --- |
-   | `ADMIN_PIN` | Your admin passcode. It must be exactly 6 digits to work with the keypad |
+   | `ADMIN_PIN` | Your admin passcode. It must be exactly 6 digits to work with the keypad. Avoid birthdays and `123456` |
+   | `WHATSAPP_NUMBER` | The number customers message, like `60123456789` or `0123456789` |
    | `DRIVE_FOLDER_ID` | The folder ID from step 2 |
    | `NOTIFY_EMAIL` | Optional. Also emails each new inquiry here |
 
@@ -56,7 +56,15 @@ Open **Log masuk admin** in the footer, or add `#/admin` to the site address.
 
 - **Inventori:** switch a plant between in stock and sold out, or add, edit and delete plants. Photos are shrunk in the browser before uploading.
 - **Pertanyaan:** see every inquiry, move it through Baru, Disahkan and Selesai, and press **Balas** to reply on WhatsApp.
-- After 5 wrong passcodes, admin locks for 15 minutes. The lock applies to everyone, including you.
+- After 5 wrong passcodes, admin locks for 15 minutes for everyone, including you. Anyone already logged in stays logged in. To unlock early, delete `pinLockedUntil` from Script properties.
+- A login lasts up to 6 hours, or until **Log keluar**.
+
+## Security
+
+- **Private, never in this repository:** the admin passcode, WhatsApp number and Drive folder ID (Script properties), and customer details (the Google Sheet). Don't share the sheet.
+- **Public on purpose:** this code, the plant list, and the Apps Script URL, which every visitor's browser has to call. None of them unlock anything.
+- **The WhatsApp number** isn't in this code, but any visitor can find it, because their browser needs it to open the chat.
+- `tests/security.test.ts` runs outsider attacks against `backend/Code.gs` on every push.
 
 ## Where things are
 

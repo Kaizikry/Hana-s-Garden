@@ -45,10 +45,13 @@ const toPlant = (row: Record<string, unknown>) =>
 const demoPlants = () => readJson<Plant[]>(local, DEMO_PLANTS) ?? STARTER_PLANTS.map((p, i) => ({ ...p, id: `PLT-${1001 + i}` }));
 const demoInquiries = () => readJson<InquiryRecord[]>(local, DEMO_INQUIRIES) ?? [];
 
-export async function fetchPlants(): Promise<Plant[]> {
-  if (isDemo) return demoPlants();
+export async function fetchShop(): Promise<{ plants: Plant[]; whatsappNumber: string }> {
+  if (isDemo) return { plants: demoPlants(), whatsappNumber: "" };
   const body = await fetch(config.appsScriptUrl).then(parse);
-  return (body.plants as Record<string, unknown>[]).filter((p) => p.id && p.name).map(toPlant);
+  return {
+    plants: (body.plants as Record<string, unknown>[]).filter((p) => p.id && p.name).map(toPlant),
+    whatsappNumber: String(body.whatsappNumber ?? ""),
+  };
 }
 
 export async function submitInquiry(inquiry: Inquiry): Promise<string> {
@@ -63,15 +66,20 @@ export async function submitInquiry(inquiry: Inquiry): Promise<string> {
   return body.inquiryId;
 }
 
-export async function verifyPin(pin: string): Promise<void> {
+/** Returns a session token, so the passcode itself never has to be kept in the browser. */
+export async function verifyPin(pin: string): Promise<string> {
   if (isDemo) {
     if (pin !== DEMO_PIN) throw new ApiError("Kod laluan salah.", "BAD_PIN");
-    return;
+    return "demo";
   }
-  await post({ action: "VERIFY_PIN", adminPin: pin });
+  return (await post({ action: "VERIFY_PIN", adminPin: pin })).token;
 }
 
-export async function savePlant(pin: string, draft: PlantDraft): Promise<Plant> {
+export async function logout(token: string): Promise<void> {
+  if (!isDemo) await post({ action: "LOGOUT", token });
+}
+
+export async function savePlant(token: string, draft: PlantDraft): Promise<Plant> {
   if (isDemo) {
     const { imageBase64, ...fields } = draft;
     const saved: Plant = { ...fields, id: draft.id ?? `PLT-${Date.now()}`, imageUrl: imageBase64 ?? draft.imageUrl };
@@ -80,28 +88,28 @@ export async function savePlant(pin: string, draft: PlantDraft): Promise<Plant> 
     if (!writeJson(local, DEMO_PLANTS, next)) throw new ApiError("Storan pelayar penuh. Buang satu foto dan cuba lagi.");
     return saved;
   }
-  const body = await post({ action: "SAVE_PLANT", adminPin: pin, plant: draft });
+  const body = await post({ action: "SAVE_PLANT", token, plant: draft });
   const { imageBase64: _uploaded, ...fields } = draft;
   return { ...fields, id: body.plantId, imageUrl: body.imageUrl };
 }
 
-export async function deletePlant(pin: string, id: string): Promise<void> {
+export async function deletePlant(token: string, id: string): Promise<void> {
   if (isDemo) {
     writeJson(local, DEMO_PLANTS, demoPlants().filter((p) => p.id !== id));
     return;
   }
-  await post({ action: "DELETE_PLANT", adminPin: pin, plantId: id });
+  await post({ action: "DELETE_PLANT", token, plantId: id });
 }
 
-export async function fetchInquiries(pin: string): Promise<InquiryRecord[]> {
+export async function fetchInquiries(token: string): Promise<InquiryRecord[]> {
   if (isDemo) return demoInquiries();
-  return (await post({ action: "LIST_INQUIRIES", adminPin: pin })).inquiries;
+  return (await post({ action: "LIST_INQUIRIES", token })).inquiries;
 }
 
-export async function setInquiryStatus(pin: string, inquiryId: string, status: InquiryStatus): Promise<void> {
+export async function setInquiryStatus(token: string, inquiryId: string, status: InquiryStatus): Promise<void> {
   if (isDemo) {
     writeJson(local, DEMO_INQUIRIES, demoInquiries().map((q) => (q.inquiryId === inquiryId ? { ...q, status } : q)));
     return;
   }
-  await post({ action: "SET_INQUIRY_STATUS", adminPin: pin, inquiryId, status });
+  await post({ action: "SET_INQUIRY_STATUS", token, inquiryId, status });
 }

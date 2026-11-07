@@ -1,8 +1,8 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Choices, Field } from "../components/ui";
-import { config, hasWhatsApp } from "../config";
+import { config } from "../config";
 import { submitInquiry } from "../lib/api";
-import { isValidPhone, money, pickupDays } from "../lib/format";
+import { isValidPhone, money, pickupDays, toWhatsAppNumber } from "../lib/format";
 import { session, writeJson } from "../lib/storage";
 import { buildMessage, whatsappUrl } from "../lib/whatsapp";
 import { useStore } from "../store";
@@ -24,7 +24,7 @@ function validate(form: typeof EMPTY) {
 }
 
 export function Checkout() {
-  const { items, count, total, clearBasket, setBasketOpen } = useStore();
+  const { items, count, total, whatsappNumber, clearBasket, setBasketOpen } = useStore();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState<Partial<typeof EMPTY>>({});
   const [sending, setSending] = useState(false);
@@ -65,7 +65,7 @@ export function Checkout() {
     ]);
 
     const message = buildMessage(config.shopName, inquiry, inquiryId);
-    const url = hasWhatsApp ? whatsappUrl(config.whatsappNumber, message) : null;
+    const url = whatsappNumber ? whatsappUrl(toWhatsAppNumber(whatsappNumber), message) : null;
     writeJson(session, SENT_KEY, { name: inquiry.customerName, inquiryId, message, url });
     clearBasket();
     window.location.hash = "/terima-kasih";

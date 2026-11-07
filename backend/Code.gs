@@ -160,27 +160,22 @@ function submitInquiry(payload) {
   if (!payload.customerName || !payload.customerPhone || items.length === 0) return fail("Pertanyaan tidak lengkap.");
   if (overInquiryLimit()) return fail("Terlalu banyak pertanyaan. Sila cuba lagi nanti.", "RATE_LIMITED");
 
-  const total = items.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
+  const total = Math.round(items.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0) * 100) / 100;
   const inquiryId = "INQ-" + Date.now();
-  sheet("Inquiries").appendRow([
-    inquiryId,
-    new Date().toISOString(),
-    safeCell(payload.customerName),
-    safeCell(payload.customerPhone),
-    safeCell(payload.pickupPreference),
-    JSON.stringify(items),
-    Math.round(total * 100) / 100,
-    safeCell(payload.notes),
-    "Baru",
-  ]);
+  // Capped once and reused for the email, so a huge request can't become a huge email either.
+  const name = safeCell(payload.customerName);
+  const phone = safeCell(payload.customerPhone);
+  const pickup = safeCell(payload.pickupPreference);
+  const notes = safeCell(payload.notes);
+  sheet("Inquiries").appendRow([inquiryId, new Date().toISOString(), name, phone, pickup, JSON.stringify(items), total, notes, "Baru"]);
 
   const notifyEmail = setting("NOTIFY_EMAIL");
   if (notifyEmail) {
     try {
       MailApp.sendEmail({
         to: notifyEmail,
-        subject: "Pertanyaan baru dari " + String(payload.customerName).replace(/\s+/g, " ").slice(0, 80),
-        body: [payload.customerName + " (" + payload.customerPhone + ")", payload.pickupPreference, "RM " + total, payload.notes || ""].join("\n"),
+        subject: "Pertanyaan baru dari " + name.replace(/\s+/g, " ").slice(0, 80),
+        body: [name + " (" + phone + ")", pickup, "RM " + total, notes].join("\n"),
       });
     } catch (err) {
       // Google limits daily email, and the inquiry is already safe in the sheet.

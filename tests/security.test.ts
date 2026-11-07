@@ -146,6 +146,13 @@ describe("hostile inquiries", () => {
     expect(String(api.sheets.get("Inquiries")!.at(-1)![7]).length).toBeLessThanOrEqual(1001);
   });
 
+  it("caps long text in the owner's email too", () => {
+    const { api, inquiry } = shop({ NOTIFY_EMAIL: "owner@example.com" });
+    const huge = "x".repeat(100000);
+    api.post({ ...inquiry, customerName: huge, customerPhone: huge, pickupPreference: huge, notes: huge });
+    expect((api.sentEmails[0] as { body: string }).body.length).toBeLessThanOrEqual(4 * 1001 + 50);
+  });
+
   it("isn't fooled by prototype keys", () => {
     const { api, inquiry } = shop();
     expect(api.post({ ...inquiry, items: [{ id: "__proto__", qty: 1 }] }).status).toBe("error");

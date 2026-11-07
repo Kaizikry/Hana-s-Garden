@@ -1,11 +1,11 @@
 import { defineConfig, type HtmlTagDescriptor, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
-const backendOrigins = [
+const backendOrigins = new Set([
   "https://script.google.com",
   "https://script.googleusercontent.com",
   ...(process.env.VITE_APPS_SCRIPT_URL ? [new URL(process.env.VITE_APPS_SCRIPT_URL).origin] : []),
-];
+]);
 
 const CONTENT_SECURITY_POLICY = [
   "default-src 'none'",
@@ -13,7 +13,7 @@ const CONTENT_SECURITY_POLICY = [
   "style-src 'self'",
   "font-src 'self' data:",
   "img-src 'self' data: blob: https://drive.google.com https://*.googleusercontent.com",
-  `connect-src ${backendOrigins.join(" ")}`,
+  `connect-src ${[...backendOrigins].join(" ")}`,
   "base-uri 'none'",
   "form-action 'none'",
 ].join("; ");

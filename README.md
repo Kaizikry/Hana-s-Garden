@@ -2,7 +2,7 @@
 
 Potted plants from my family's home garden in Kampung Undang, Terengganu. Have a look at what's growing, pick a few, and reserve them with one WhatsApp message. Then come by and collect them.
 
-**[Visit the shop](https://tubular-figolla-57c4ed.netlify.app)**
+**[Visit the shop](https://lamanhana.netlify.app)**
 
 ![The Hana's Garden home page, with three bromeliad photos in arch frames and a green band reading "Ambil sendiri di Kampung Undang, Terengganu"](docs/shop.jpg)
 

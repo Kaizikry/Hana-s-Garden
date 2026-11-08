@@ -5,8 +5,8 @@
 export const config = {
   shopName: "Hana's Garden",
   ownerName: "Hana",
-  pickupPlace: "Kampung Undang",
-  pickupArea: "Kampung Undang, Terengganu",
+  pickupPlace: "Rumah Hana di Kampung Undang, Bukit Payong",
+  pickupArea: "Kampung Undang, Bukit Payong",
   pickupHours: "Setiap hari, 9 pagi – 5 petang",
   pickupWindows: ["9–11 pagi", "11 pagi–1 tgh hari", "2–5 petang"],
   currency: "RM",

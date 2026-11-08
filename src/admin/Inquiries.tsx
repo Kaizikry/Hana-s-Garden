@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { Photo } from "../components/ui";
 import { setInquiryStatus } from "../lib/api";
 import { inquiryTime, money, toWhatsAppNumber } from "../lib/format";
 import { whatsappUrl } from "../lib/whatsapp";
+import { useStore } from "../store";
 import type { InquiryRecord, InquiryStatus } from "../types";
 
 const STATUSES: InquiryStatus[] = ["Baru", "Disahkan", "Selesai"];
@@ -24,6 +26,9 @@ export function Inquiries({ token, inquiries, failed, retry, setInquiries, onErr
   const [filter, setFilter] = useState<InquiryStatus | "Semua">("Semua");
   const [busyId, setBusyId] = useState("");
   const [error, setError] = useState("");
+  // Matched by id, not name, so look-alike plants with similar names can't be mixed up.
+  const { plants, status: plantsStatus } = useStore();
+  const plantById = new Map(plants.map((p) => [p.id, p]));
 
   const newestFirst = [...(inquiries ?? [])].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   const shown = newestFirst.filter((q) => filter === "Semua" || q.status === filter);
@@ -80,7 +85,21 @@ export function Inquiries({ token, inquiries, failed, retry, setInquiries, onErr
             <p className="muted small">{q.customerPhone} · {q.inquiryId}</p>
             <p><strong>{q.pickupPreference}</strong></p>
             <ul className="inquiry-items">
-              {q.items.map((item) => <li key={item.id}>{item.name} × {item.qty}</li>)}
+              {q.items.map((item) => {
+                const plant = plantById.get(item.id);
+                return (
+                  <li key={item.id}>
+                    {plant ? (
+                      <a className="item-thumb" href={`#/pokok/${encodeURIComponent(plant.id)}`} target="_blank" rel="noreferrer" aria-label={`Lihat foto ${plant.name}`}>
+                        <Photo plant={plant} />
+                      </a>
+                    ) : (
+                      <span className="item-thumb">{plantsStatus === "ready" && <span className="photo-empty">Sudah dipadam</span>}</span>
+                    )}
+                    <span><strong>{item.name}</strong> × {item.qty}</span>
+                  </li>
+                );
+              })}
             </ul>
             {q.notes && <blockquote>{q.notes}</blockquote>}
             <p className="total"><span>Jumlah anggaran</span> <strong>{money(q.totalPrice)}</strong></p>

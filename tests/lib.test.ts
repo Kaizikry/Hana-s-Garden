@@ -2,7 +2,51 @@ import { describe, expect, it } from "vitest";
 import { STARTER_PLANTS } from "../src/data/plants";
 import { inquiryTime, isValidPhone, money, pickupDays, roundCents, toWhatsAppNumber } from "../src/lib/format";
 import { fitWithin } from "../src/lib/image";
+import { pageItems, paginate, shopOrder } from "../src/lib/pages";
 import { basketTotal, buildMessage, whatsappUrl } from "../src/lib/whatsapp";
+import type { Plant } from "../src/types";
+
+describe("pages", () => {
+  const forty = Array.from({ length: 40 }, (_, i) => i + 1);
+
+  it("splits a list into pages, the last one partly full", () => {
+    expect(paginate(forty, 1, 12)).toEqual({ items: forty.slice(0, 12), page: 1, pages: 4 });
+    expect(paginate(forty, 4, 12).items).toEqual([37, 38, 39, 40]);
+  });
+
+  it("keeps a page number from the address within range", () => {
+    expect(paginate(forty, 99, 12).page).toBe(4);
+    expect(paginate(forty, 0, 12).page).toBe(1);
+    expect(paginate(forty, Number("abc"), 12).page).toBe(1);
+    expect(paginate(forty, 2.7, 12).page).toBe(2);
+  });
+
+  it("treats an empty list as one empty page", () => {
+    expect(paginate([], 3, 12)).toEqual({ items: [], page: 1, pages: 1 });
+  });
+
+  it("shows every page number when there are 7 or fewer", () => {
+    expect(pageItems(1, 1)).toEqual([1]);
+    expect(pageItems(2, 4)).toEqual([1, 2, 3, 4]);
+    expect(pageItems(7, 7)).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it("shortens long runs of page numbers with gaps", () => {
+    // Near either end the row stays the same width, so the buttons don't shift between nearby pages.
+    expect(pageItems(1, 12)).toEqual([1, 2, 3, 4, "…", 12]);
+    expect(pageItems(3, 12)).toEqual([1, 2, 3, 4, "…", 12]);
+    expect(pageItems(6, 12)).toEqual([1, "…", 5, 6, 7, "…", 12]);
+    expect(pageItems(12, 12)).toEqual([1, "…", 9, 10, 11, 12]);
+  });
+
+  it("orders the shop in stock first, newest first", () => {
+    const plant = (id: string, stock: number, status: Plant["status"] = "Available") => ({ id, stock, status }) as Plant;
+    // The Sheet keeps plants oldest first.
+    const sheet = [plant("old", 2), plant("sold", 0), plant("mid", 5), plant("gone", 3, "Sold Out"), plant("new", 1)];
+    expect(shopOrder(sheet).map((p) => p.id)).toEqual(["new", "mid", "old", "gone", "sold"]);
+    expect(sheet[0].id).toBe("old"); // the store's own list is left alone
+  });
+});
 
 describe("money", () => {
   it("drops cents only for whole amounts", () => {

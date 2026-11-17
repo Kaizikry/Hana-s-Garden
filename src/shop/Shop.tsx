@@ -10,7 +10,8 @@ import { ThankYou } from "./ThankYou";
 
 export function Shop({ route }: { route: string }) {
   const { count, total, lines, setBasketOpen } = useStore();
-  const browsing = route === "/" || route.startsWith("/pokok/");
+  const [path, query = ""] = route.split("?");
+  const browsing = path === "/" || path.startsWith("/pokok/");
 
   return (
     <>
@@ -25,10 +26,10 @@ export function Shop({ route }: { route: string }) {
       </header>
 
       <main>
-        {route.startsWith("/pokok/") ? <PlantPage id={decodeURIComponent(route.slice(7))} />
-          : route === "/tempahan" ? <Checkout />
-          : route === "/terima-kasih" ? <ThankYou />
-          : <Catalog />}
+        {path.startsWith("/pokok/") ? <PlantPage id={decodeURIComponent(path.slice(7))} />
+          : path === "/tempahan" ? <Checkout />
+          : path === "/terima-kasih" ? <ThankYou />
+          : <Catalog route={route} askedPage={Number(new URLSearchParams(query).get("halaman")) || 1} />}
       </main>
 
       <footer className="site-footer">

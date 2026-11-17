@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { Dialog } from "../components/Dialog";
+import { Pager } from "../components/Pager";
 import { Photo } from "../components/ui";
 import { isDemo } from "../config";
 import { STARTER_PLANTS } from "../data/plants";
 import { deletePlant, savePlant } from "../lib/api";
 import { money } from "../lib/format";
+import { paginate } from "../lib/pages";
 import { useStore } from "../store";
 import { inStock, type Plant, type PlantDraft } from "../types";
 import { PlantForm } from "./PlantForm";
+
+const PER_PAGE = 20;
 
 export function Inventory({ token, onError }: { token: string; onError: (err: unknown) => string }) {
   const { plants, setPlants, status, reload } = useStore();
@@ -15,6 +19,17 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
   const [deleting, setDeleting] = useState<Plant | null>(null);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
+  const [askedPage, setAskedPage] = useState(1);
+
+  // Newest first, and stock doesn't affect the order, so a plant stays put when it's switched.
+  const q = query.trim().toLowerCase();
+  const matching = [...plants].reverse().filter((p) => !q || `${p.name} ${p.altName}`.toLowerCase().includes(q));
+  const { items, page, pages } = paginate(matching, askedPage, PER_PAGE);
+  const goTo = (n: number) => {
+    setAskedPage(n);
+    window.scrollTo(0, 0);
+  };
 
   const upsert = (saved: Plant) =>
     setPlants((list) => (list.some((p) => p.id === saved.id) ? list.map((p) => (p.id === saved.id ? saved : p)) : [...list, saved]));
@@ -40,6 +55,11 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
 
   const save = async (draft: PlantDraft) => {
     upsert(await savePlant(token, draft));
+    // A new plant goes to the top of page 1, so show it there.
+    if (editing === "new") {
+      setQuery("");
+      setAskedPage(1);
+    }
     setEditing(null);
   };
 
@@ -66,6 +86,19 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
         </div>
         <button type="button" className="btn" onClick={() => setEditing("new")}>Tambah pokok</button>
       </div>
+      {plants.length > 0 && (
+        <input
+          type="search"
+          className="admin-search"
+          aria-label="Cari nama pokok"
+          placeholder="Cari nama pokok…"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setAskedPage(1);
+          }}
+        />
+      )}
 
       {error && <p className="error-box" role="alert">{error}</p>}
       {status === "loading" && plants.length === 0 && <p className="notice" role="status">Sedang memuatkan pokok…</p>}
@@ -86,8 +119,10 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
         </div>
       )}
 
+      {q && matching.length === 0 && <p className="notice">Tiada pokok dengan nama itu.</p>}
+
       <ul className="stock-list">
-        {plants.map((plant) => (
+        {items.map((plant) => (
           <li key={plant.id} className="stock-row">
             <div className="stock-thumb"><Photo plant={plant} /></div>
             <div className="stock-name">
@@ -114,6 +149,7 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
           </li>
         ))}
       </ul>
+      <Pager page={page} pages={pages} onPick={goTo} />
 
       <Dialog open={editing !== null} onClose={() => setEditing(null)} label={editing === "new" ? "Tambah pokok" : "Edit pokok"}>
         {editing !== null && <PlantForm plant={editing === "new" ? null : editing} onCancel={() => setEditing(null)} onSave={save} onError={onError} />}

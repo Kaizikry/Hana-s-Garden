@@ -103,6 +103,14 @@ h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); margin-bottom: 10px; }
 .plant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(32px, 4vw, 52px) clamp(20px, 3.5vw, 48px); }
 .plant-grid > li:nth-child(3n + 2) { margin-top: 56px; }
 .plant-card { display: flex; flex-direction: column; height: 100%; }
+
+.pager { display: grid; justify-items: center; gap: 8px; margin-top: 56px; }
+.pager-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; }
+.pager-row a, .pager-row button, .pager-off { display: grid; place-items: center; min-width: 44px; height: 44px; padding: 0 6px; border-radius: 999px; font-weight: 600; text-decoration: none; }
+.pager-row a:hover, .pager-row button:hover { background: var(--tan); }
+.pager-row .is-current, .pager-row .is-current:hover { background: var(--clay); color: var(--on-dark); }
+.pager-off { color: var(--line); }
+.pager-gap { min-width: 24px; text-align: center; color: var(--muted); }
 .plant-card .arch img { transition: transform 200ms ease-out; }
 .plant-card:hover .arch img { transform: scale(1.03); }
 .plant-card-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; }
@@ -223,6 +231,7 @@ textarea { resize: vertical; }
 .admin-page { max-width: 1120px; margin: 0 auto; padding: clamp(20px, 4vw, 36px) var(--gutter) 64px; }
 .admin-page > h1 { margin-bottom: 4px; }
 .admin-page > .muted { margin-bottom: 20px; }
+.admin-search { display: block; width: 100%; max-width: 360px; margin-bottom: 8px; }
 .admin-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .error-box { margin: 12px 0; padding: 10px 14px; background: #f7d9d3; color: #7a1c12; border-radius: var(--radius); font-weight: 500; }
 

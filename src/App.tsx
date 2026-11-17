@@ -12,8 +12,10 @@ export function App() {
 
   useEffect(() => {
     const onChange = () => {
-      setRoute(currentRoute());
-      window.scrollTo(0, 0);
+      const next = currentRoute();
+      setRoute(next);
+      // The catalog scrolls itself: to a page's first plants, or back to the plant just viewed.
+      if (next.split("?")[0] !== "/") window.scrollTo(0, 0);
     };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);

@@ -15,6 +15,8 @@
   --moss-dark: #3d472b;
   --lime: #e1eecc;
   --on-dark: #fff8ee;
+  --glow-peach: #f1c8a2;
+  --glow-green: #dfe8c8;
   --radius: 10px;
   --gutter: clamp(16px, 5vw, 72px);
   --display: "Caprasimo", Georgia, serif;
@@ -75,15 +77,21 @@ h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); margin-bottom: 10px; }
 .basket-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; }
 
 /* The arches stand directly on the moss band, like niches in a wall. */
-.hero { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(20px, 4vw, 56px); padding: clamp(16px, 3vw, 32px) var(--gutter) 0; }
-.hero-text { align-self: center; padding-bottom: clamp(24px, 4vw, 48px); }
-.hero h1 { font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1.02; margin-bottom: 18px; }
-.hero p { max-width: 30em; font-size: 18px; }
-.hero-arches { display: flex; align-items: flex-end; gap: clamp(6px, 1vw, 12px); height: clamp(280px, 38vw, 520px); }
-.hero-arches img { flex: 1; min-width: 0; object-fit: cover; border-radius: 999px 999px 0 0; }
-.hero-arches img:nth-child(1) { height: 68%; }
-.hero-arches img:nth-child(2) { height: 100%; flex: 1.35; }
-.hero-arches img:nth-child(3) { height: 54%; }
+.hero {
+  display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 7fr); align-items: center; gap: clamp(24px, 5vw, 72px);
+  padding: clamp(40px, 7vw, 104px) var(--gutter);
+  background:
+    radial-gradient(55% 70% at 58% 55%, var(--glow-peach), transparent 70%),
+    radial-gradient(40% 55% at 100% 50%, var(--lime), transparent 70%),
+    radial-gradient(40% 55% at 0% 100%, var(--glow-green), transparent 70%),
+    var(--paper);
+}
+.hero h1 { font: 800 clamp(2.6rem, 5vw, 4.4rem)/1.02 var(--body); letter-spacing: -0.035em; margin-bottom: 20px; }
+.hero p { max-width: 27em; font-size: 15px; line-height: 1.6; margin-bottom: 28px; }
+.hero-btn { min-width: 150px; box-shadow: 0 12px 24px -12px var(--clay); }
+.hero-track { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 1.2vw, 16px); }
+.hero-track img { display: block; width: 100%; aspect-ratio: 3 / 4.4; object-fit: cover; border-radius: 6px; box-shadow: 0 18px 36px -24px rgb(32 30 29 / 0.55); }
+.hero-nav { display: none; }
 .pickup-band { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 24px; padding: 14px var(--gutter); background: var(--moss-dark); color: var(--on-dark); }
 .pickup-band strong { font: 400 1.15rem/1.3 var(--display); }
 
@@ -280,11 +288,23 @@ textarea { resize: vertical; }
 .inquiry .total strong { font-size: 1.3rem; }
 
 @media (max-width: 860px) {
-  .hero { grid-template-columns: 1fr; gap: 16px; }
-  .hero-text { padding-bottom: 0; }
-  .hero h1 { font-size: clamp(2.4rem, 11vw, 4rem); }
-  .hero p { font-size: 16px; }
-  .hero-arches { height: min(72vw, 380px); }
+  .hero { grid-template-columns: 1fr; gap: 32px; padding-block: 40px 28px; }
+  .hero h1 { font-size: clamp(2.4rem, 10.5vw, 4rem); }
+  .hero-track {
+    display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); scroll-padding-inline: var(--gutter);
+  }
+  .hero-track::-webkit-scrollbar { display: none; }
+  .hero-track li { flex: 0 0 min(70%, 320px); scroll-snap-align: start; }
+  .hero-track img { aspect-ratio: 3 / 3.8; }
+  .hero-nav { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+  .hero-nav span { margin-right: auto; font-size: 14px; letter-spacing: 0.12em; }
+  .hero-nav i { font-style: normal; color: var(--muted); padding-inline: 6px; }
+  .hero-nav button {
+    width: 44px; height: 44px; border: 1px solid var(--ink); border-radius: 50%; background: none; color: var(--ink);
+    font-size: 22px; line-height: 1; cursor: pointer;
+  }
+  .hero-nav button:disabled { border-color: var(--line); color: var(--line); cursor: default; }
   .plant-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 14px; }
   .plant-grid > li:nth-child(3n + 2) { margin-top: 0; }
   .plant-grid > li:nth-child(even) { margin-top: 32px; }
@@ -309,6 +329,10 @@ textarea { resize: vertical; }
   .plant-form { padding: 14px 14px 18px; }
   .field-row .field-row { grid-column: 1 / -1; }
   .plant-form > .field-row { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-track { scroll-behavior: smooth; }
 }
 
 @media (prefers-reduced-motion: reduce) {

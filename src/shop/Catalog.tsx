@@ -8,7 +8,7 @@ import { readJson, session, writeJson } from "../lib/storage";
 import { useStore } from "../store";
 import { CATEGORIES, inStock, type Plant } from "../types";
 
-const HERO_PHOTOS = ["images/bromelia-02.jpeg", "images/bromelia-14.jpeg", "images/bromelia-09.jpeg"];
+const HERO_PHOTOS = ["images/hero-1.jpeg", "images/hero-2.jpeg", "images/hero-3.jpeg"];
 const PER_PAGE = 12;
 const LAST_PLANT = "garden.lastPlant";
 export const CATALOG_ROUTE = "garden.catalogRoute";
@@ -60,15 +60,7 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
 
   return (
     <>
-      <section className="hero">
-        <div className="hero-text">
-          <h1>Pokok dari laman kami, sedia untuk laman anda.</h1>
-          <p>Pilih pokok, masukkan ke bakul, dan hantar satu pertanyaan terus ke WhatsApp {config.ownerName}.</p>
-        </div>
-        <div className="hero-arches" aria-hidden="true">
-          {HERO_PHOTOS.map((src) => <img key={src} src={src} alt="" />)}
-        </div>
-      </section>
+      <Hero onBrowse={() => catalogRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
 
       <p className="pickup-band">
         <strong>Ambil sendiri di {config.pickupArea}</strong>
@@ -116,6 +108,43 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
         <Pager page={page} pages={pages} hrefFor={pageHref} />
       </section>
     </>
+  );
+}
+
+function Hero({ onBrowse }: { onBrowse: () => void }) {
+  const trackRef = useRef<HTMLUListElement>(null);
+  const [current, setCurrent] = useState(0);
+
+  // On phones the photos become a swipeable row; the arrows and counter only show there.
+  const go = (index: number) => {
+    const cards = trackRef.current ? [...trackRef.current.children] as HTMLElement[] : [];
+    if (cards[index]) trackRef.current!.scrollTo({ left: cards[index].offsetLeft - cards[0].offsetLeft });
+  };
+  const track = () => {
+    const el = trackRef.current;
+    const [first, second] = el ? [...el.children] as HTMLElement[] : [];
+    if (el && first && second) setCurrent(Math.round(el.scrollLeft / (second.offsetLeft - first.offsetLeft)));
+  };
+  const count = (n: number) => String(n).padStart(2, "0");
+
+  return (
+    <section className="hero">
+      <div className="hero-text">
+        <h1>Pokok dari laman kami, sedia untuk laman anda.</h1>
+        <p>Pilih pokok, masukkan ke bakul, dan hantar satu pertanyaan terus ke WhatsApp {config.ownerName}.</p>
+        <button type="button" className="btn hero-btn" onClick={onBrowse}>Lihat pokok</button>
+      </div>
+      <div className="hero-photos">
+        <ul className="hero-track" ref={trackRef} onScroll={track}>
+          {HERO_PHOTOS.map((src) => <li key={src}><img src={src} alt="" /></li>)}
+        </ul>
+        <div className="hero-nav">
+          <span aria-hidden="true">{count(current + 1)} <i>/</i> {count(HERO_PHOTOS.length)}</span>
+          <button type="button" aria-label="Foto sebelumnya" disabled={current === 0} onClick={() => go(current - 1)}>‹</button>
+          <button type="button" aria-label="Foto seterusnya" disabled={current === HERO_PHOTOS.length - 1} onClick={() => go(current + 1)}>›</button>
+        </div>
+      </div>
+    </section>
   );
 }
 

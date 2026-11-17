@@ -26,6 +26,11 @@ export function Photo({ plant, src }: { plant: Pick<Plant, "name" | "imageUrl">;
   return <img src={url} alt={plant.name} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} />;
 }
 
+/** Sits on a sold-out plant's photo. Hidden from screen readers, which already hear the stock text. */
+export function SoldBadge() {
+  return <span className="sold-badge" aria-hidden="true">Habis dijual</span>;
+}
+
 export function stockText(plant: Plant) {
   if (plant.status === "Sold Out" || plant.stock <= 0) return "Habis dijual";
   return plant.stock <= 3 ? `Tinggal ${plant.stock} sahaja` : `${plant.stock} dalam stok`;

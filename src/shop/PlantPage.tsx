@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Photo, Stepper, stockText } from "../components/ui";
+import { Photo, SoldBadge, Stepper, stockText } from "../components/ui";
 import { config } from "../config";
 import { money } from "../lib/format";
 import { readJson, session } from "../lib/storage";
@@ -38,7 +38,10 @@ export function PlantPage({ id }: { id: string }) {
     <div className="page">
       <a className="back" href={back}>← Katalog</a>
       <div className="plant-page">
-        <div className="arch"><Photo plant={plant} /></div>
+        <div className="arch">
+          <Photo plant={plant} />
+          {!inStock(plant) && <SoldBadge />}
+        </div>
         <div>
           <p className="muted">{plant.category} · <span className={plant.stock > 3 && inStock(plant) ? "" : "low"}>{stockText(plant)}</span></p>
           <h1>{plant.name}</h1>

@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pager } from "../components/Pager";
-import { Photo, stockText } from "../components/ui";
+import { Photo, SoldBadge, stockText } from "../components/ui";
 import { config } from "../config";
-import { money } from "../lib/format";
+import { money, toWhatsAppNumber } from "../lib/format";
 import { paginate, shopOrder } from "../lib/pages";
 import { readJson, session, writeJson } from "../lib/storage";
+import { whatsappUrl } from "../lib/whatsapp";
 import { useStore } from "../store";
 import { CATEGORIES, inStock, type Plant } from "../types";
 
@@ -15,7 +16,8 @@ export const CATALOG_ROUTE = "garden.catalogRoute";
 const pageHref = (n: number) => (n > 1 ? `#/?halaman=${n}` : "#/");
 
 export function Catalog({ route, askedPage }: { route: string; askedPage: number }) {
-  const { plants, status, reload } = useStore();
+  const { plants, status, reload, whatsappNumber } = useStore();
+  const walkIn = `Nak datang tengok pokok sendiri? WhatsApp ${config.ownerName} dulu.`;
   const [category, setCategory] = useState("Semua");
   const [query, setQuery] = useState("");
   const catalogRef = useRef<HTMLElement>(null);
@@ -63,7 +65,10 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
       <Hero onBrowse={() => catalogRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
 
       <p className="pickup-band">
-        <strong>Ambil sendiri di {config.pickupArea}</strong>
+        {/* Tappable once the number has loaded; until then (or in the demo) it's plain text. */}
+        {whatsappNumber
+          ? <a href={whatsappUrl(toWhatsAppNumber(whatsappNumber), `Salam ${config.ownerName}, saya nak datang tengok pokok.`)} target="_blank" rel="noreferrer">{walkIn}</a>
+          : <strong>{walkIn}</strong>}
         <span>{config.pickupHours}</span>
       </p>
 
@@ -157,7 +162,10 @@ function PlantCard({ plant }: { plant: Plant }) {
 
   return (
     <article className={available ? "plant-card" : "plant-card is-sold"}>
-      <a className="arch" href={href} tabIndex={-1} aria-hidden="true" onClick={remember}><Photo plant={plant} /></a>
+      <a className="arch" href={href} tabIndex={-1} aria-hidden="true" onClick={remember}>
+        <Photo plant={plant} />
+        {!available && <SoldBadge />}
+      </a>
       <div className="plant-card-title">
         <h3><a href={href} onClick={remember}>{plant.name}</a></h3>
         <strong>{money(plant.price)}</strong>

@@ -17,21 +17,21 @@ export function ThankYou() {
   if (!sent) {
     return (
       <div className="page notice">
-        <p>Tiada pertanyaan untuk ditunjukkan.</p>
-        <a className="btn btn-quiet" href="#/">Kembali ke katalog</a>
+        <p>There's no inquiry to show.</p>
+        <a className="btn btn-quiet" href="#/">Back to the catalog</a>
       </div>
     );
   }
 
   return (
     <div className="page thanks">
-      <h1>Terima kasih, {sent.name.split(" ")[0]}!</h1>
+      <h1>Thank you, {sent.name.split(" ")[0]}!</h1>
       {sent.url ? (
-        <p className="page-lead">WhatsApp sepatutnya terbuka dengan mesej di bawah. Tekan Hantar di WhatsApp untuk sampaikan kepada {config.ownerName}.</p>
+        <p className="page-lead">WhatsApp should open with the message below. Press Send in WhatsApp to pass it to {config.ownerName}.</p>
       ) : (
-        <p className="page-lead">Nombor WhatsApp kedai belum ditetapkan, jadi mesej ini belum dihantar kepada {config.ownerName}.</p>
+        <p className="page-lead">The shop's WhatsApp number isn't set up yet, so this message hasn't reached {config.ownerName}.</p>
       )}
-      {sent.inquiryId && <p className="muted small">Pertanyaan anda telah direkod. Rujukan: {sent.inquiryId}</p>}
+      {sent.inquiryId && <p className="muted small">Your inquiry has been saved. Reference: {sent.inquiryId}</p>}
 
       <div className="chat">
         <p className="chat-name">{config.shopName}</p>
@@ -39,8 +39,8 @@ export function ThankYou() {
       </div>
 
       <div className="thanks-actions">
-        {sent.url && <a className="btn" href={sent.url}>Buka WhatsApp</a>}
-        <a className="btn btn-quiet" href="#/">Kembali ke katalog</a>
+        {sent.url && <a className="btn" href={sent.url}>Open WhatsApp</a>}
+        <a className="btn btn-quiet" href="#/">Back to the catalog</a>
       </div>
     </div>
   );

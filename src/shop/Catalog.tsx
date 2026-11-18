@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pager } from "../components/Pager";
-import { Photo, SoldBadge, stockText } from "../components/ui";
+import { Photo, SoldBadge, stockText, WhatsAppIcon } from "../components/ui";
 import { config } from "../config";
 import { money, toWhatsAppNumber } from "../lib/format";
 import { paginate, shopOrder } from "../lib/pages";
 import { readJson, session, writeJson } from "../lib/storage";
 import { whatsappUrl } from "../lib/whatsapp";
 import { useStore } from "../store";
-import { CATEGORIES, inStock, type Plant } from "../types";
+import { CATEGORIES, categoryLabel, inStock, type Plant } from "../types";
 
-const HERO_PHOTOS = ["images/hero-1.jpeg", "images/hero-2.jpeg", "images/hero-3.jpeg"];
+const HERO_PHOTOS = ["images/hero-1.jpeg", "images/hero-2.jpeg", "images/hero-3.jpeg", "images/hero-4.jpeg"];
 const PER_PAGE = 12;
 const LAST_PLANT = "garden.lastPlant";
+const ALL = "All";
 export const CATALOG_ROUTE = "garden.catalogRoute";
-const pageHref = (n: number) => (n > 1 ? `#/?halaman=${n}` : "#/");
+const pageHref = (n: number) => (n > 1 ? `#/?page=${n}` : "#/");
 
 export function Catalog({ route, askedPage }: { route: string; askedPage: number }) {
   const { plants, status, reload, whatsappNumber } = useStore();
-  const walkIn = `Nak datang tengok pokok sendiri? WhatsApp ${config.ownerName} dulu.`;
-  const [category, setCategory] = useState("Semua");
+  const [category, setCategory] = useState(ALL);
   const [query, setQuery] = useState("");
   const catalogRef = useRef<HTMLElement>(null);
   const shownPage = useRef<number | null>(null);
@@ -26,12 +26,12 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return shopOrder(plants).filter(
-      (p) => (category === "Semua" || p.category === category) && (!q || `${p.name} ${p.altName}`.toLowerCase().includes(q)),
+      (p) => (category === ALL || p.category === category) && (!q || `${p.name} ${p.altName}`.toLowerCase().includes(q)),
     );
   }, [plants, category, query]);
   const { items, page, pages } = paginate(shown, askedPage, PER_PAGE);
 
-  // So the plant page's "← Katalog" link can return to this page.
+  // So the plant page's "← Catalog" link can return to this page.
   useEffect(() => void writeJson(session, CATALOG_ROUTE, route), [route]);
 
   useEffect(() => {
@@ -46,7 +46,7 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
     // Back from a plant: return to its card. A shared page link: go to the plants. Otherwise start at the top.
     const lastId = readJson<string>(session, LAST_PLANT);
     session?.removeItem(LAST_PLANT);
-    const card = lastId ? document.getElementById(`pokok-${lastId}`) : null;
+    const card = lastId ? document.getElementById(`plant-${lastId}`) : null;
     if (card) card.scrollIntoView({ block: "center" });
     else if (page > 1) catalogRef.current?.scrollIntoView();
     else window.scrollTo(0, 0);
@@ -64,51 +64,61 @@ export function Catalog({ route, askedPage }: { route: string; askedPage: number
     <>
       <Hero onBrowse={() => catalogRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })} />
 
-      <p className="pickup-band">
-        {/* Tappable once the number has loaded; until then (or in the demo) it's plain text. */}
-        {whatsappNumber
-          ? <a href={whatsappUrl(toWhatsAppNumber(whatsappNumber), `Salam ${config.ownerName}, saya nak datang tengok pokok.`)} target="_blank" rel="noreferrer">{walkIn}</a>
-          : <strong>{walkIn}</strong>}
+      <div className="pickup-band">
+        <div className="pickup-ask">
+          <strong>Want to see the plants in person? WhatsApp {config.ownerName} first.</strong>
+          {/* Shown once the number has loaded. The demo has no number, so it has no button. */}
+          {whatsappNumber && (
+            <a
+              className="btn btn-whatsapp"
+              href={whatsappUrl(toWhatsAppNumber(whatsappNumber), `Hi ${config.ownerName}, I'd like to come and see the plants.`)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <WhatsAppIcon /> Chat on WhatsApp
+            </a>
+          )}
+        </div>
         <span>{config.pickupHours}</span>
-      </p>
+      </div>
 
-      <section className="catalog" aria-label="Katalog pokok" ref={catalogRef}>
+      <section className="catalog" aria-label="Plant catalog" ref={catalogRef}>
         <div className="catalog-head">
           <div>
-            <h2>Katalog pokok</h2>
-            <p>Semua harga ialah anggaran. {config.ownerName} akan sahkan stok dan harga melalui WhatsApp.</p>
+            <h2>Plant catalog</h2>
+            <p>All prices are estimates. {config.ownerName} will confirm stock and price on WhatsApp.</p>
           </div>
-          <input type="search" aria-label="Cari nama pokok" placeholder="Cari nama pokok…" value={query} onChange={(e) => refilter(() => setQuery(e.target.value))} />
+          <input type="search" aria-label="Search plant names" placeholder="Search plant names…" value={query} onChange={(e) => refilter(() => setQuery(e.target.value))} />
         </div>
 
         {usedCategories.length > 1 && (
-          <div className="tabs" role="group" aria-label="Kategori">
-            {["Semua", ...usedCategories].map((name) => (
-              <button key={name} type="button" aria-pressed={category === name} onClick={() => refilter(() => setCategory(name))}>{name}</button>
+          <div className="tabs" role="group" aria-label="Category">
+            {[ALL, ...usedCategories].map((name) => (
+              <button key={name} type="button" aria-pressed={category === name} onClick={() => refilter(() => setCategory(name))}>{categoryLabel(name)}</button>
             ))}
           </div>
         )}
 
-        {status === "loading" && plants.length === 0 && <p className="notice" role="status">Sedang memuatkan pokok, sekejap ya.</p>}
+        {status === "loading" && plants.length === 0 && <p className="notice" role="status">Loading the plants, one moment.</p>}
 
         {status === "error" && (
           <div className="notice" role="alert">
-            <p>Senarai pokok tidak dapat dimuatkan. Semak sambungan internet anda dan cuba lagi.</p>
-            <button type="button" className="btn" onClick={reload}>Cuba lagi</button>
+            <p>The plant list couldn't be loaded. Check your internet connection and try again.</p>
+            <button type="button" className="btn" onClick={reload}>Try again</button>
           </div>
         )}
 
-        {status === "ready" && plants.length === 0 && <p className="notice">Belum ada pokok disenaraikan. Sila datang semula nanti.</p>}
+        {status === "ready" && plants.length === 0 && <p className="notice">No plants are listed yet. Please check back soon.</p>}
 
         {plants.length > 0 && shown.length === 0 && (
           <div className="notice">
-            <p>Tiada pokok dengan nama itu.</p>
-            <button type="button" className="btn btn-quiet" onClick={() => refilter(() => { setQuery(""); setCategory("Semua"); })}>Lihat semua pokok</button>
+            <p>No plants match that name.</p>
+            <button type="button" className="btn btn-quiet" onClick={() => refilter(() => { setQuery(""); setCategory(ALL); })}>See all plants</button>
           </div>
         )}
 
         <ul className="plant-grid">
-          {items.map((plant) => <li key={plant.id} id={`pokok-${plant.id}`}><PlantCard plant={plant} /></li>)}
+          {items.map((plant) => <li key={plant.id} id={`plant-${plant.id}`}><PlantCard plant={plant} /></li>)}
         </ul>
         <Pager page={page} pages={pages} hrefFor={pageHref} />
       </section>
@@ -135,9 +145,9 @@ function Hero({ onBrowse }: { onBrowse: () => void }) {
   return (
     <section className="hero">
       <div className="hero-text">
-        <h1>Pokok dari laman kami, sedia untuk laman anda.</h1>
-        <p>Pilih pokok, masukkan ke bakul, dan hantar satu pertanyaan terus ke WhatsApp {config.ownerName}.</p>
-        <button type="button" className="btn hero-btn" onClick={onBrowse}>Lihat pokok</button>
+        <h1>Plants from our garden, ready for yours.</h1>
+        <p>Pick your plants, add them to the basket, and send one inquiry straight to {config.ownerName} on WhatsApp.</p>
+        <button type="button" className="btn hero-btn" onClick={onBrowse}>See the plants</button>
       </div>
       <div className="hero-photos">
         <ul className="hero-track" ref={trackRef} onScroll={track}>
@@ -145,8 +155,8 @@ function Hero({ onBrowse }: { onBrowse: () => void }) {
         </ul>
         <div className="hero-nav">
           <span aria-hidden="true">{count(current + 1)} <i>/</i> {count(HERO_PHOTOS.length)}</span>
-          <button type="button" aria-label="Foto sebelumnya" disabled={current === 0} onClick={() => go(current - 1)}>‹</button>
-          <button type="button" aria-label="Foto seterusnya" disabled={current === HERO_PHOTOS.length - 1} onClick={() => go(current + 1)}>›</button>
+          <button type="button" aria-label="Previous photo" disabled={current === 0} onClick={() => go(current - 1)}>‹</button>
+          <button type="button" aria-label="Next photo" disabled={current === HERO_PHOTOS.length - 1} onClick={() => go(current + 1)}>›</button>
         </div>
       </div>
     </section>
@@ -155,7 +165,7 @@ function Hero({ onBrowse }: { onBrowse: () => void }) {
 
 function PlantCard({ plant }: { plant: Plant }) {
   const { qtyOf, setQty, setBasketOpen } = useStore();
-  const href = `#/pokok/${encodeURIComponent(plant.id)}`;
+  const href = `#/plant/${encodeURIComponent(plant.id)}`;
   const available = inStock(plant);
   const inBasket = qtyOf(plant.id);
   const remember = () => writeJson(session, LAST_PLANT, plant.id);
@@ -174,8 +184,8 @@ function PlantCard({ plant }: { plant: Plant }) {
       <div className="plant-card-foot">
         <span className={available && plant.stock > 3 ? "muted" : "low"}>{stockText(plant)}</span>
         {available && (inBasket > 0
-          ? <button type="button" className="btn btn-quiet btn-small" onClick={() => setBasketOpen(true)}>Dalam bakul · {inBasket}</button>
-          : <button type="button" className="btn btn-small" onClick={() => setQty(plant, 1)} aria-label={`Tambah ${plant.name}`}>Tambah</button>)}
+          ? <button type="button" className="btn btn-quiet btn-small" onClick={() => setBasketOpen(true)}>In basket · {inBasket}</button>
+          : <button type="button" className="btn btn-small" onClick={() => setQty(plant, 1)} aria-label={`Add ${plant.name}`}>Add</button>)}
       </div>
     </article>
   );

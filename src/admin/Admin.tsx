@@ -48,7 +48,7 @@ function PinPad({ onUnlock }: { onUnlock: (token: string) => void }) {
     verifyPin(digits)
       .then(onUnlock)
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Tidak dapat dihubungi. Semak sambungan internet dan cuba lagi.");
+        setError(err instanceof ApiError ? err.message : "Couldn't connect. Check your internet connection and try again.");
         setDigits("");
       })
       .finally(() => setBusy(false));
@@ -56,19 +56,19 @@ function PinPad({ onUnlock }: { onUnlock: (token: string) => void }) {
 
   return (
     <main className="pin">
-      <h1>Mod Admin</h1>
-      <p className="muted">Masukkan kod laluan untuk urus inventori dan pertanyaan.</p>
-      <div className="pin-dots" role="img" aria-label={`${digits.length} daripada ${PIN_LENGTH} digit`}>
+      <h1>Admin</h1>
+      <p className="muted">Enter the passcode to manage the inventory and inquiries.</p>
+      <div className="pin-dots" role="img" aria-label={`${digits.length} of ${PIN_LENGTH} digits`}>
         {Array.from({ length: PIN_LENGTH }, (_, i) => <i key={i} className={i < digits.length ? "on" : ""} />)}
       </div>
-      <p className="pin-message" role="alert">{busy ? "Sedang menyemak…" : error}</p>
+      <p className="pin-message" role="alert">{busy ? "Checking…" : error}</p>
       <div className="pin-keys">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((n) => <button key={n} type="button" disabled={busy} onClick={() => press(n)}>{n}</button>)}
         <button type="button" disabled={busy} className="pin-zero" onClick={() => press("0")}>0</button>
-        <button type="button" disabled={busy} className="pin-del" onClick={() => press("del")} aria-label="Padam satu digit">⌫</button>
+        <button type="button" disabled={busy} className="pin-del" onClick={() => press("del")} aria-label="Delete one digit">⌫</button>
       </div>
-      {isDemo && <p className="muted small">Mod demo: {DEMO_PIN}</p>}
-      <a className="back" href="#/">Kembali ke kedai</a>
+      {isDemo && <p className="muted small">Demo passcode: {DEMO_PIN}</p>}
+      <a className="back" href="#/">Back to the shop</a>
     </main>
   );
 }
@@ -80,7 +80,7 @@ function Dashboard({ token, onLogout, onExpired }: { token: string; onLogout: ()
 
   const handleError = useCallback((err: unknown): string => {
     if (err instanceof ApiError && err.code === "BAD_SESSION") onExpired();
-    return err instanceof ApiError ? err.message : "Tidak berjaya. Semak sambungan internet dan cuba lagi.";
+    return err instanceof ApiError ? err.message : "That didn't work. Check your internet connection and try again.";
   }, [onExpired]);
 
   const loadInquiries = useCallback(() => {
@@ -101,17 +101,17 @@ function Dashboard({ token, onLogout, onExpired }: { token: string; onLogout: ()
       <header className="admin-bar">
         <a href="#/" className="admin-name">{config.shopName}</a>
         <nav className="admin-tabs">
-          <button type="button" aria-pressed={tab === "inventory"} onClick={() => setTab("inventory")}>Inventori</button>
+          <button type="button" aria-pressed={tab === "inventory"} onClick={() => setTab("inventory")}>Inventory</button>
           <button type="button" aria-pressed={tab === "inquiries"} onClick={() => setTab("inquiries")}>
-            Pertanyaan {newCount > 0 && <span className="count">{newCount}</span>}
+            Inquiries {newCount > 0 && <span className="count">{newCount}</span>}
           </button>
         </nav>
         <div className="admin-links">
-          <a href="#/">Lihat kedai</a>
-          <button type="button" onClick={onLogout}>Log keluar</button>
+          <a href="#/">View shop</a>
+          <button type="button" onClick={onLogout}>Log out</button>
         </div>
       </header>
-      {isDemo && <p className="demo-note">Mod demo: perubahan hanya disimpan dalam pelayar ini.</p>}
+      {isDemo && <p className="demo-note">Demo mode: changes are only saved in this browser.</p>}
       {tab === "inventory"
         ? <Inventory token={token} onError={handleError} />
         : <Inquiries token={token} inquiries={inquiries} failed={inquiriesFailed} retry={loadInquiries} setInquiries={setInquiries} onError={handleError} />}

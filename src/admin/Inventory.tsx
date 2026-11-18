@@ -8,7 +8,7 @@ import { deletePlant, savePlant } from "../lib/api";
 import { money } from "../lib/format";
 import { paginate } from "../lib/pages";
 import { useStore } from "../store";
-import { inStock, type Plant, type PlantDraft } from "../types";
+import { categoryLabel, inStock, type Plant, type PlantDraft } from "../types";
 import { PlantForm } from "./PlantForm";
 
 const PER_PAGE = 20;
@@ -81,17 +81,17 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
     <main className="admin-page">
       <div className="admin-head">
         <div>
-          <h1>Inventori</h1>
-          <p className="muted">{plants.length} pokok · {available} ada stok · {plants.length - available} habis dijual</p>
+          <h1>Inventory</h1>
+          <p className="muted">{plants.length} plants · {available} in stock · {plants.length - available} sold out</p>
         </div>
-        <button type="button" className="btn" onClick={() => setEditing("new")}>Tambah pokok</button>
+        <button type="button" className="btn" onClick={() => setEditing("new")}>Add plant</button>
       </div>
       {plants.length > 0 && (
         <input
           type="search"
           className="admin-search"
-          aria-label="Cari nama pokok"
-          placeholder="Cari nama pokok…"
+          aria-label="Search plant names"
+          placeholder="Search plant names…"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -101,25 +101,25 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
       )}
 
       {error && <p className="error-box" role="alert">{error}</p>}
-      {status === "loading" && plants.length === 0 && <p className="notice" role="status">Sedang memuatkan pokok…</p>}
+      {status === "loading" && plants.length === 0 && <p className="notice" role="status">Loading the plants…</p>}
       {status === "error" && (
         <div className="notice" role="alert">
-          <p>Senarai pokok tidak dapat dimuatkan.</p>
-          <button type="button" className="btn" onClick={reload}>Cuba lagi</button>
+          <p>The plant list couldn't be loaded.</p>
+          <button type="button" className="btn" onClick={reload}>Try again</button>
         </div>
       )}
       {status === "ready" && plants.length === 0 && (
         <div className="notice">
-          <p>Belum ada pokok. Tambah pokok pertama, atau masukkan {STARTER_PLANTS.length} pokok dari foto yang sedia ada.</p>
+          <p>No plants yet. Add the first plant, or add the {STARTER_PLANTS.length} plants from the existing photos.</p>
           {!isDemo && (
             <button type="button" className="btn btn-quiet" disabled={!!busy} onClick={addStarters}>
-              {busy === "starters" ? "Sedang memasukkan…" : `Masukkan ${STARTER_PLANTS.length} pokok`}
+              {busy === "starters" ? "Adding…" : `Add ${STARTER_PLANTS.length} plants`}
             </button>
           )}
         </div>
       )}
 
-      {q && matching.length === 0 && <p className="notice">Tiada pokok dengan nama itu.</p>}
+      {q && matching.length === 0 && <p className="notice">No plants match that name.</p>}
 
       <ul className="stock-list">
         {items.map((plant) => (
@@ -127,42 +127,42 @@ export function Inventory({ token, onError }: { token: string; onError: (err: un
             <div className="stock-thumb"><Photo plant={plant} /></div>
             <div className="stock-name">
               <h3>{plant.name}</h3>
-              <p className="muted small">{plant.category} · {plant.id}</p>
+              <p className="muted small">{categoryLabel(plant.category)} · {plant.id}</p>
             </div>
-            <p className="stock-num"><small>Harga</small>{money(plant.price)}</p>
-            <p className="stock-num"><small>Stok</small>{plant.stock}</p>
+            <p className="stock-num"><small>Price</small>{money(plant.price)}</p>
+            <p className="stock-num"><small>Stock</small>{plant.stock}</p>
             <button
               type="button"
               role="switch"
               aria-checked={inStock(plant)}
-              aria-label={`${plant.name} ada stok`}
+              aria-label={`${plant.name} in stock`}
               className="switch"
               disabled={busy === plant.id}
               onClick={() => toggle(plant)}
             >
-              <i /> {inStock(plant) ? "Ada stok" : "Habis dijual"}
+              <i /> {inStock(plant) ? "In stock" : "Sold out"}
             </button>
             <div className="stock-actions">
               <button type="button" className="link-btn" onClick={() => setEditing(plant)} aria-label={`Edit ${plant.name}`}>Edit</button>
-              <button type="button" className="link-btn" onClick={() => setDeleting(plant)} aria-label={`Padam ${plant.name}`}>Padam</button>
+              <button type="button" className="link-btn" onClick={() => setDeleting(plant)} aria-label={`Delete ${plant.name}`}>Delete</button>
             </div>
           </li>
         ))}
       </ul>
       <Pager page={page} pages={pages} onPick={goTo} />
 
-      <Dialog open={editing !== null} onClose={() => setEditing(null)} label={editing === "new" ? "Tambah pokok" : "Edit pokok"}>
+      <Dialog open={editing !== null} onClose={() => setEditing(null)} label={editing === "new" ? "Add plant" : "Edit plant"}>
         {editing !== null && <PlantForm plant={editing === "new" ? null : editing} onCancel={() => setEditing(null)} onSave={save} onError={onError} />}
       </Dialog>
 
-      <Dialog open={deleting !== null} onClose={() => setDeleting(null)} label="Padam pokok">
+      <Dialog open={deleting !== null} onClose={() => setDeleting(null)} label="Delete plant">
         {deleting && (
           <div className="confirm">
-            <h2>Padam {deleting.name}?</h2>
-            <p>Pokok ini akan hilang dari kedai dan dari Google Sheet. Kalau mungkin ada stok lagi nanti, tandakan habis dijual sahaja.</p>
+            <h2>Delete {deleting.name}?</h2>
+            <p>This plant will disappear from the shop and from the Google Sheet. If it might be back in stock later, mark it sold out instead.</p>
             <div className="form-actions">
-              <button type="button" className="btn btn-quiet" onClick={() => setDeleting(null)}>Batal</button>
-              <button type="button" className="btn" disabled={busy === "delete"} onClick={remove}>{busy === "delete" ? "Sedang memadam…" : "Padam pokok"}</button>
+              <button type="button" className="btn btn-quiet" onClick={() => setDeleting(null)}>Cancel</button>
+              <button type="button" className="btn" disabled={busy === "delete"} onClick={remove}>{busy === "delete" ? "Deleting…" : "Delete plant"}</button>
             </div>
           </div>
         )}

@@ -11,6 +11,7 @@
 
 const INVENTORY_HEADERS = ["id", "name", "altName", "category", "price", "stock", "status", "sunlight", "water", "potSize", "description", "imageUrl", "updatedAt"];
 const INQUIRY_HEADERS = ["inquiryId", "timestamp", "customerName", "customerPhone", "pickupPreference", "itemsJson", "totalPrice", "notes", "status"];
+// Stored in Malay so older rows keep working. The site shows them as New, Confirmed and Done.
 const INQUIRY_STATUSES = ["Baru", "Disahkan", "Selesai"];
 
 const MAX_PIN_FAILURES = 5;
@@ -71,7 +72,7 @@ function doPost(e) {
     if (payload.action === "SUBMIT_INQUIRY") return submitInquiry(payload);
     if (payload.action === "VERIFY_PIN") return withLock(function () { return verifyPin(payload.adminPin); });
 
-    if (!hasSession(payload.token)) return fail("Sesi tamat. Sila log masuk semula.", "BAD_SESSION");
+    if (!hasSession(payload.token)) return fail("Your session has ended. Please log in again.", "BAD_SESSION");
 
     if (payload.action === "LOGOUT") {
       CacheService.getScriptCache().remove("session:" + payload.token);
@@ -83,12 +84,12 @@ function doPost(e) {
       if (payload.action === "SAVE_PLANT") return savePlant(payload.plant);
       if (payload.action === "DELETE_PLANT") return deletePlant(payload.plantId);
       if (payload.action === "SET_INQUIRY_STATUS") return setInquiryStatus(payload.inquiryId, payload.status);
-      return fail("Tindakan tidak dikenali.");
+      return fail("Unknown action.");
     });
   } catch (err) {
     // The details go to the Apps Script log, not to whoever sent the request.
     console.error(err);
-    return fail("Ralat pelayan. Sila cuba lagi.");
+    return fail("Server error. Please try again.");
   }
 }
 
@@ -105,12 +106,12 @@ function withLock(action) {
 
 function verifyPin(pin) {
   const expected = setting("ADMIN_PIN");
-  if (!expected) return fail("ADMIN_PIN belum ditetapkan dalam Script Properties.", "NOT_CONFIGURED");
+  if (!expected) return fail("ADMIN_PIN isn't set in Script Properties yet.", "NOT_CONFIGURED");
 
   // Kept in Properties, because CacheService can forget a failure count early.
   const props = properties();
   if (Date.now() < Number(props.getProperty("pinLockedUntil"))) {
-    return fail("Terlalu banyak cubaan salah. Cuba lagi selepas 15 minit.", "LOCKED");
+    return fail("Too many wrong tries. Try again in 15 minutes.", "LOCKED");
   }
   if (pin !== expected) {
     const failures = Number(props.getProperty("pinFailures")) + 1;
@@ -120,7 +121,7 @@ function verifyPin(pin) {
     } else {
       props.setProperty("pinFailures", String(failures));
     }
-    return fail("Kod laluan salah.", "BAD_PIN");
+    return fail("Wrong passcode.", "BAD_PIN");
   }
   props.deleteProperty("pinFailures");
 
@@ -157,8 +158,8 @@ function checkedItems(requested) {
 
 function submitInquiry(payload) {
   const items = checkedItems(payload.items);
-  if (!payload.customerName || !payload.customerPhone || items.length === 0) return fail("Pertanyaan tidak lengkap.");
-  if (overInquiryLimit()) return fail("Terlalu banyak pertanyaan. Sila cuba lagi nanti.", "RATE_LIMITED");
+  if (!payload.customerName || !payload.customerPhone || items.length === 0) return fail("This inquiry is incomplete.");
+  if (overInquiryLimit()) return fail("Too many inquiries right now. Please try again later.", "RATE_LIMITED");
 
   const total = Math.round(items.reduce(function (sum, item) { return sum + item.price * item.qty; }, 0) * 100) / 100;
   const inquiryId = "INQ-" + Date.now();
@@ -174,7 +175,7 @@ function submitInquiry(payload) {
     try {
       MailApp.sendEmail({
         to: notifyEmail,
-        subject: "Pertanyaan baru dari " + name.replace(/\s+/g, " ").slice(0, 80),
+        subject: "New inquiry from " + name.replace(/\s+/g, " ").slice(0, 80),
         body: [name + " (" + phone + ")", pickup, "RM " + total, notes].join("\n"),
       });
     } catch (err) {
@@ -211,7 +212,7 @@ function listInquiries() {
 }
 
 function setInquiryStatus(inquiryId, status) {
-  if (INQUIRY_STATUSES.indexOf(status) < 0) return fail("Status tidak sah.");
+  if (INQUIRY_STATUSES.indexOf(status) < 0) return fail("Invalid status.");
   const tab = sheet("Inquiries");
   const rows = tab.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
@@ -221,17 +222,17 @@ function setInquiryStatus(inquiryId, status) {
       return jsonResponse({ status: "success" });
     }
   }
-  return fail("Pertanyaan tidak dijumpai.");
+  return fail("Inquiry not found.");
 }
 
 function savePlant(plant) {
-  if (!plant || !plant.name) return fail("Pokok perlu ada nama.");
+  if (!plant || !plant.name) return fail("A plant needs a name.");
 
   let imageUrl = plant.imageUrl || "";
   if (plant.imageBase64) {
     const folderId = setting("DRIVE_FOLDER_ID");
     // Saving without the photo would look like success and lose it.
-    if (!folderId) return fail("Foto tidak disimpan: DRIVE_FOLDER_ID belum ditetapkan dalam Script Properties.");
+    if (!folderId) return fail("Photo not saved: DRIVE_FOLDER_ID isn't set in Script Properties yet.");
     const bytes = Utilities.base64Decode(String(plant.imageBase64).split(",").pop());
     const file = DriveApp.getFolderById(folderId).createFile(Utilities.newBlob(bytes, "image/jpeg", "plant_" + Date.now() + ".jpg"));
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -277,5 +278,5 @@ function deletePlant(plantId) {
       return jsonResponse({ status: "success" });
     }
   }
-  return fail("Pokok tidak dijumpai.");
+  return fail("Plant not found.");
 }

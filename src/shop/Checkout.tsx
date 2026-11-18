@@ -15,10 +15,10 @@ const TIME_OPTIONS = config.pickupWindows.map((value) => ({ value, label: <b>{va
 
 function validate(form: typeof EMPTY) {
   return {
-    ...(!form.name.trim() && { name: "Sila isi nama anda." }),
-    ...(!isValidPhone(form.phone) && { phone: "Sila isi nombor telefon yang betul, cth. 012-345 6789." }),
-    ...(!form.day && { day: "Sila pilih hari ambil." }),
-    ...(!form.time && { time: "Sila pilih masa ambil." }),
+    ...(!form.name.trim() && { name: "Please enter your name." }),
+    ...(!isValidPhone(form.phone) && { phone: "Please enter a valid phone number, e.g. 012-345 6789." }),
+    ...(!form.day && { day: "Please choose a pickup day." }),
+    ...(!form.time && { time: "Please choose a pickup time." }),
   };
 }
 
@@ -69,7 +69,7 @@ export function Checkout() {
     const url = whatsappNumber ? whatsappUrl(toWhatsAppNumber(whatsappNumber), message) : null;
     writeJson(session, SENT_KEY, { name: inquiry.customerName, inquiryId, message, url });
     clearBasket();
-    window.location.hash = "/terima-kasih";
+    window.location.hash = "/thank-you";
     // Same-tab navigation, because popup blockers stop new tabs opened after an await.
     if (url) window.location.assign(url);
   };
@@ -77,47 +77,47 @@ export function Checkout() {
   if (items.length === 0) {
     return (
       <div className="page notice">
-        <p>Bakul anda masih kosong.</p>
-        <a className="btn btn-quiet" href="#/">Lihat katalog</a>
+        <p>Your basket is empty.</p>
+        <a className="btn btn-quiet" href="#/">See the catalog</a>
       </div>
     );
   }
 
   return (
     <div className="page">
-      <button type="button" className="back" onClick={() => setBasketOpen(true)}>← Bakul</button>
-      <h1>Butiran tempahan</h1>
-      <p className="page-lead">Isi maklumat di bawah. Pertanyaan anda akan direkod, kemudian WhatsApp dibuka dengan senarai pokok yang dipilih.</p>
+      <button type="button" className="back" onClick={() => setBasketOpen(true)}>← Basket</button>
+      <h1>Your details</h1>
+      <p className="page-lead">Fill in the details below. Your inquiry is saved, then WhatsApp opens with the plants you picked.</p>
 
       <form className="checkout" onSubmit={submit} noValidate ref={formRef}>
         <div className="checkout-fields">
           <div className="field-row">
-            <Field label="Nama" error={errors.name}>
-              <input name="name" autoComplete="name" placeholder="cth. Nurul Aisyah" value={form.name} onChange={(e) => update("name")(e.target.value)} />
+            <Field label="Name" error={errors.name}>
+              <input name="name" autoComplete="name" placeholder="e.g. Nurul Aisyah" value={form.name} onChange={(e) => update("name")(e.target.value)} />
             </Field>
-            <Field label="No. telefon" error={errors.phone}>
+            <Field label="Phone number" error={errors.phone}>
               <input name="phone" type="tel" autoComplete="tel" placeholder="012-345 6789" value={form.phone} onChange={(e) => update("phone")(e.target.value)} />
             </Field>
           </div>
-          <Choices label="Hari ambil" name="day" options={dayOptions} value={form.day} error={errors.day} onChange={update("day")} />
-          <Choices label="Masa ambil" name="time" options={TIME_OPTIONS} value={form.time} error={errors.time} onChange={update("time")} />
-          <Field label="Nota atau soalan (pilihan)">
-            <textarea name="notes" rows={3} placeholder="cth. Boleh pilihkan yang daun lebih lebat?" value={form.notes} onChange={(e) => update("notes")(e.target.value)} />
+          <Choices label="Pickup day" name="day" options={dayOptions} value={form.day} error={errors.day} onChange={update("day")} />
+          <Choices label="Pickup time" name="time" options={TIME_OPTIONS} value={form.time} error={errors.time} onChange={update("time")} />
+          <Field label="Notes or questions (optional)">
+            <textarea name="notes" rows={3} placeholder="e.g. Could you pick ones with fuller leaves?" value={form.notes} onChange={(e) => update("notes")(e.target.value)} />
           </Field>
         </div>
 
         <aside className="summary">
-          <h2>Bakul anda <small>{count} pokok</small></h2>
+          <h2>Your basket <small>{count} {count === 1 ? "plant" : "plants"}</small></h2>
           <ul>
             {items.map((item) => <li key={item.id}><span>{item.name} × {item.qty}</span> <strong>{money(item.price * item.qty)}</strong></li>)}
           </ul>
-          <p className="total"><span>Jumlah anggaran</span> <strong>{money(total)}</strong></p>
-          <p className="small">Ambil sendiri di {config.pickupPlace}{form.day && `, ${form.day}`}{form.time && ` · ${form.time}`}</p>
+          <p className="total"><span>Estimated total</span> <strong>{money(total)}</strong></p>
+          <p className="small">Self pickup at {config.pickupPlace}{form.day && `, ${form.day}`}{form.time && ` · ${form.time}`}</p>
           <button type="submit" className="btn btn-wide" disabled={sending}>
-            {sending ? "Sedang merekod…" : "Hantar Pertanyaan via WhatsApp"}
+            {sending ? "Saving…" : "Send inquiry on WhatsApp"}
           </button>
-          <p className="muted small">Harga anggaran. {config.ownerName} akan sahkan stok dan harga akhir melalui WhatsApp.</p>
-          <p className="muted small">Nama dan nombor telefon anda direkod dan hanya digunakan oleh {config.ownerName} untuk urus tempahan ini. Untuk semak atau padam maklumat anda, hubungi {config.ownerName} melalui WhatsApp.</p>
+          <p className="muted small">Prices are estimates. {config.ownerName} will confirm stock and the final price on WhatsApp.</p>
+          <p className="muted small">Your name and phone number are saved and only used by {config.ownerName} to handle this inquiry. To check or delete your details, contact {config.ownerName} on WhatsApp.</p>
         </aside>
       </form>
     </div>

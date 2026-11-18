@@ -6,13 +6,13 @@ Potted plants from my family's home garden in Kampung Undang, Terengganu. Have a
 
 ![The Hana's Garden home page, with three bromeliad photos in arch frames and a green band reading "Ambil sendiri di Kampung Undang, Terengganu"](docs/shop.jpg)
 
-## Untuk pelanggan
+## For customers
 
-Hana's Garden ialah laman pokok keluarga kami di Kampung Undang. Lihat pokok yang ada, masukkan ke bakul, dan hantar satu pertanyaan terus ke WhatsApp Hana. Hana akan sahkan stok dan harga, kemudian anda datang ambil sendiri.
+Hana's Garden is our family's plant garden in Kampung Undang. See which plants are available, add them to the basket, and send one inquiry straight to Hana on WhatsApp. Hana confirms stock and price, then you come and collect them yourself.
 
-- **Ambil sendiri:** Kampung Undang, Terengganu
-- **Waktu:** setiap hari, 9 pagi hingga 5 petang
-- Untuk jiran sekampung, kawan-kawan dan sesiapa sahaja di sekitar Terengganu yang boleh singgah
+- **Self pickup:** Kampung Undang, Terengganu
+- **Hours:** every day, 9am to 5pm
+- For neighbours in the village, friends, and anyone around Terengganu who can drop by
 
 ## About the garden
 
@@ -34,7 +34,7 @@ There's no app to install, no account to make, and no online payment. All you ne
 
 **For customers**
 
-- You can see what's available without messaging first to ask "ada lagi tak?"
+- You can see what's available without messaging first to ask "is it still available?"
 - Prices are shown up front. They're estimates, and Hana confirms the final price.
 - One message carries the whole list, instead of sending photos back and forth.
 

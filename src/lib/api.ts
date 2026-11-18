@@ -69,7 +69,7 @@ export async function submitInquiry(inquiry: Inquiry): Promise<string> {
 /** Returns a session token, so the passcode itself never has to be kept in the browser. */
 export async function verifyPin(pin: string): Promise<string> {
   if (isDemo) {
-    if (pin !== DEMO_PIN) throw new ApiError("Kod laluan salah.", "BAD_PIN");
+    if (pin !== DEMO_PIN) throw new ApiError("Wrong passcode.", "BAD_PIN");
     return "demo";
   }
   return (await post({ action: "VERIFY_PIN", adminPin: pin })).token;
@@ -85,7 +85,7 @@ export async function savePlant(token: string, draft: PlantDraft): Promise<Plant
     const saved: Plant = { ...fields, id: draft.id ?? `PLT-${Date.now()}`, imageUrl: imageBase64 ?? draft.imageUrl };
     const plants = demoPlants();
     const next = draft.id ? plants.map((p) => (p.id === saved.id ? saved : p)) : [...plants, saved];
-    if (!writeJson(local, DEMO_PLANTS, next)) throw new ApiError("Storan pelayar penuh. Buang satu foto dan cuba lagi.");
+    if (!writeJson(local, DEMO_PLANTS, next)) throw new ApiError("Browser storage is full. Remove a photo and try again.");
     return saved;
   }
   const body = await post({ action: "SAVE_PLANT", token, plant: draft });

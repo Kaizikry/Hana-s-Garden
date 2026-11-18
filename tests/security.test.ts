@@ -9,7 +9,7 @@ function shop(extra: Record<string, string> = {}) {
   const api = loadBackend({ ADMIN_PIN: PIN, WHATSAPP_NUMBER: NUMBER, ...extra });
   const token = api.post({ action: "VERIFY_PIN", adminPin: PIN }).token as string;
   const { plantId } = api.post({ action: "SAVE_PLANT", token, plant: { name: "Bromelia", category: "Luar Rumah", price: 25, stock: 3 } });
-  const inquiry = { action: "SUBMIT_INQUIRY", customerName: "Pelanggan", customerPhone: "0123456789", pickupPreference: "Esok", notes: "", items: [{ id: plantId, qty: 1 }] };
+  const inquiry = { action: "SUBMIT_INQUIRY", customerName: "Secret Customer", customerPhone: "0123456789", pickupPreference: "Tomorrow", notes: "", items: [{ id: plantId, qty: 1 }] };
   return { api, token, plantId, inquiry, list: () => api.post({ action: "LIST_INQUIRIES", token }) };
 }
 
@@ -42,7 +42,7 @@ describe("access control", () => {
     const { api, inquiry } = shop();
     api.post(inquiry);
     const publicData = JSON.stringify(api.get());
-    expect(publicData).not.toContain("Pelanggan");
+    expect(publicData).not.toContain("Secret Customer");
     expect(publicData).not.toContain("0123456789");
     expect(publicData).not.toContain(PIN);
   });

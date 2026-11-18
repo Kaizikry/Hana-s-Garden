@@ -14,7 +14,7 @@ export async function compressImage(file: File): Promise<string> {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const el = new Image();
       el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error("Foto ini tidak dapat dibuka. Cuba fail JPG atau PNG."));
+      el.onerror = () => reject(new Error("This photo couldn't be opened. Try a JPG or PNG file."));
       el.src = url;
     });
 

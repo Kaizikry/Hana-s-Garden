@@ -11,35 +11,35 @@ import { ThankYou } from "./ThankYou";
 export function Shop({ route }: { route: string }) {
   const { count, total, lines, setBasketOpen } = useStore();
   const [path, query = ""] = route.split("?");
-  const browsing = path === "/" || path.startsWith("/pokok/");
+  const browsing = path === "/" || path.startsWith("/plant/");
 
   return (
     <>
       {isDemo && (
-        <p className="demo-note">Pratonton: nama, harga dan stok ini contoh sahaja sehingga kedai disambungkan ke Google Sheet.</p>
+        <p className="demo-note">Preview: these names, prices and stock are examples until the shop is connected to the Google Sheet.</p>
       )}
       <header className="site-header">
         <a className="wordmark" href="#/"><Sprout />{config.shopName}</a>
         <button type="button" className="basket-link" onClick={() => setBasketOpen(true)}>
-          <BasketIcon /> Bakul <span className="count">{count}</span>
+          <BasketIcon /> Basket <span className="count">{count}</span>
         </button>
       </header>
 
       <main>
-        {path.startsWith("/pokok/") ? <PlantPage id={decodeURIComponent(path.slice(7))} />
-          : path === "/tempahan" ? <Checkout />
-          : path === "/terima-kasih" ? <ThankYou />
-          : <Catalog route={route} askedPage={Number(new URLSearchParams(query).get("halaman")) || 1} />}
+        {path.startsWith("/plant/") ? <PlantPage id={decodeURIComponent(path.slice(7))} />
+          : path === "/checkout" ? <Checkout />
+          : path === "/thank-you" ? <ThankYou />
+          : <Catalog route={route} askedPage={Number(new URLSearchParams(query).get("page")) || 1} />}
       </main>
 
       <footer className="site-footer">
         <span>{config.shopName} · {config.pickupArea}</span>
-        <a href="#/admin">Log masuk admin</a>
+        <a href="#/admin">Admin login</a>
       </footer>
 
       {browsing && lines.length > 0 && (
         <button type="button" className="basket-float" onClick={() => setBasketOpen(true)}>
-          <BasketIcon /> {count} pokok <strong>{money(total)}</strong>
+          <BasketIcon /> {count} {count === 1 ? "plant" : "plants"} <strong>{money(total)}</strong>
         </button>
       )}
       <BasketDrawer />

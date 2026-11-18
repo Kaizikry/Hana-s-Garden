@@ -23,15 +23,15 @@ export function Pager({ page, pages, hrefFor, onPick }: Props) {
   };
 
   return (
-    <nav className="pager" aria-label="Halaman">
+    <nav className="pager" aria-label="Pages">
       <div className="pager-row">
-        {go(page - 1, "Halaman sebelumnya", "‹")}
+        {go(page - 1, "Previous page", "‹")}
         {pageItems(page, pages).map((n, i) =>
-          n === "…" ? <span key={`gap${i}`} className="pager-gap">…</span> : <span key={n}>{go(n, `Halaman ${n}`, n, n === page)}</span>,
+          n === "…" ? <span key={`gap${i}`} className="pager-gap">…</span> : <span key={n}>{go(n, `Page ${n}`, n, n === page)}</span>,
         )}
-        {go(page + 1, "Halaman seterusnya", "›")}
+        {go(page + 1, "Next page", "›")}
       </div>
-      <p className="muted small">Halaman {page} daripada {pages}</p>
+      <p className="muted small">Page {page} of {pages}</p>
     </nav>
   );
 }

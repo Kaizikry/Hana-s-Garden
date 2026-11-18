@@ -3,7 +3,7 @@ import { loadBackend } from "./fakeAppsScript";
 
 const PIN = "482193";
 const plant = { name: "Bromelia", altName: "Neoregelia", category: "Luar Rumah", price: 25, stock: 3, status: "Available" };
-const customer = { action: "SUBMIT_INQUIRY", customerName: "Pelanggan Ujian", customerPhone: "+60123456789", pickupPreference: "Isnin, 9 Nov · 9–11 pagi", notes: "" };
+const customer = { action: "SUBMIT_INQUIRY", customerName: "Test Customer", customerPhone: "+60123456789", pickupPreference: "Monday, 9 Nov · 9–11am", notes: "" };
 
 type Api = ReturnType<typeof loadBackend>;
 const login = (api: Api) => api.post({ action: "VERIFY_PIN", adminPin: PIN }).token as string;

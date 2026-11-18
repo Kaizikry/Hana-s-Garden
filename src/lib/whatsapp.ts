@@ -7,18 +7,18 @@ export function basketTotal(items: { price: number; qty: number }[]): number {
 
 export function buildMessage(shopName: string, inquiry: Inquiry, inquiryId?: string): string {
   return [
-    `Salam ${shopName}, saya nak buat pertanyaan untuk pokok berikut:`,
+    `Hi ${shopName}, I'd like to ask about these plants:`,
     "",
     ...inquiry.items.map((item, i) => `${i + 1}. ${item.name} × ${item.qty} = ${money(item.price * item.qty)}`),
     "",
-    `Jumlah anggaran: ${money(inquiry.totalPrice)}`,
-    `Ambil sendiri: ${inquiry.pickupPreference}`,
-    `Nama: ${inquiry.customerName}`,
-    `Telefon: ${inquiry.customerPhone}`,
-    ...(inquiry.notes ? [`Nota: ${inquiry.notes}`] : []),
+    `Estimated total: ${money(inquiry.totalPrice)}`,
+    `Self pickup: ${inquiry.pickupPreference}`,
+    `Name: ${inquiry.customerName}`,
+    `Phone: ${inquiry.customerPhone}`,
+    ...(inquiry.notes ? [`Notes: ${inquiry.notes}`] : []),
     "",
-    ...(inquiryId ? [`Rujukan: ${inquiryId}`] : []),
-    "Terima kasih!",
+    ...(inquiryId ? [`Reference: ${inquiryId}`] : []),
+    "Thank you!",
   ].join("\n");
 }
 

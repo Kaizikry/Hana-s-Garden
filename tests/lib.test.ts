@@ -63,21 +63,21 @@ describe("money", () => {
 describe("pickup days", () => {
   const saturdayMorning = new Date(2026, 10, 7, 10, 0);
 
-  it("offers 7 days in Malay, starting today", () => {
+  it("offers 7 days, starting today", () => {
     const days = pickupDays(saturdayMorning);
     expect(days).toHaveLength(7);
-    expect(days[0]).toEqual({ label: "Hari ini", date: "7 Nov", value: "Sabtu, 7 Nov" });
-    expect(days[1]).toMatchObject({ label: "Esok", value: "Ahad, 8 Nov" });
-    expect(days[2]).toMatchObject({ label: "Isnin", date: "9 Nov" });
+    expect(days[0]).toEqual({ label: "Today", date: "7 Nov", value: "Saturday, 7 Nov" });
+    expect(days[1]).toMatchObject({ label: "Tomorrow", value: "Sunday, 8 Nov" });
+    expect(days[2]).toMatchObject({ label: "Monday", date: "9 Nov" });
   });
 
   it("leaves out today once the garden has closed", () => {
     const [first] = pickupDays(new Date(2026, 10, 7, 18, 0));
-    expect(first).toMatchObject({ label: "Esok", date: "8 Nov" });
+    expect(first).toMatchObject({ label: "Tomorrow", date: "8 Nov" });
   });
 
   it("crosses into the next month", () => {
-    expect(pickupDays(new Date(2026, 10, 30, 10, 0))[1].date).toBe("1 Dis");
+    expect(pickupDays(new Date(2026, 10, 30, 10, 0))[1].date).toBe("1 Dec");
   });
 });
 
@@ -95,9 +95,9 @@ describe("phone numbers", () => {
 });
 
 describe("inquiry time", () => {
-  it("uses the Malay morning and afternoon markers", () => {
-    expect(inquiryTime(new Date(2026, 10, 7, 14, 5).toISOString())).toBe("7 Nov, 2:05 ptg");
-    expect(inquiryTime(new Date(2026, 10, 7, 0, 30).toISOString())).toBe("7 Nov, 12:30 pg");
+  it("uses am and pm", () => {
+    expect(inquiryTime(new Date(2026, 10, 7, 14, 5).toISOString())).toBe("7 Nov, 2:05 pm");
+    expect(inquiryTime(new Date(2026, 10, 7, 0, 30).toISOString())).toBe("7 Nov, 12:30 am");
   });
 });
 
@@ -105,10 +105,10 @@ describe("WhatsApp message", () => {
   const inquiry = {
     customerName: "Aisha & Co",
     customerPhone: "0123456789",
-    pickupPreference: "Isnin, 9 Nov · 9–11 pagi",
+    pickupPreference: "Monday, 9 Nov · 9–11am",
     items: [
       { id: "a", name: "Aloe Vera", price: 8, qty: 2 },
-      { id: "b", name: "Bromelia Bintik", price: 12.5, qty: 1 },
+      { id: "b", name: "Spotted Bromeliad", price: 12.5, qty: 1 },
     ],
     totalPrice: 28.5,
     notes: "",
@@ -117,25 +117,25 @@ describe("WhatsApp message", () => {
   it("matches the design's format", () => {
     expect(buildMessage("Hana's Garden", inquiry, "INQ-1")).toBe(
       [
-        "Salam Hana's Garden, saya nak buat pertanyaan untuk pokok berikut:",
+        "Hi Hana's Garden, I'd like to ask about these plants:",
         "",
         "1. Aloe Vera × 2 = RM 16",
-        "2. Bromelia Bintik × 1 = RM 12.50",
+        "2. Spotted Bromeliad × 1 = RM 12.50",
         "",
-        "Jumlah anggaran: RM 28.50",
-        "Ambil sendiri: Isnin, 9 Nov · 9–11 pagi",
-        "Nama: Aisha & Co",
-        "Telefon: 0123456789",
+        "Estimated total: RM 28.50",
+        "Self pickup: Monday, 9 Nov · 9–11am",
+        "Name: Aisha & Co",
+        "Phone: 0123456789",
         "",
-        "Rujukan: INQ-1",
-        "Terima kasih!",
+        "Reference: INQ-1",
+        "Thank you!",
       ].join("\n"),
     );
   });
 
   it("adds notes only when there are some", () => {
-    expect(buildMessage("Kedai", inquiry)).not.toContain("Nota:");
-    expect(buildMessage("Kedai", { ...inquiry, notes: "Daun lebat" })).toContain("Nota: Daun lebat");
+    expect(buildMessage("Shop", inquiry)).not.toContain("Notes:");
+    expect(buildMessage("Shop", { ...inquiry, notes: "Full leaves" })).toContain("Notes: Full leaves");
   });
 
   it("encodes the URL so symbols and newlines survive", () => {

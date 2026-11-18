@@ -1,7 +1,7 @@
 import { config } from "../config";
 
-const DAYS = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
-const MONTHS = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const CLOSING_HOUR = 17;
 
 export const roundCents = (n: number) => Math.round(n * 100) / 100;
@@ -20,7 +20,7 @@ export function pickupDays(now = new Date()) {
     const offset = start + i;
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
     const weekday = DAYS[d.getDay()];
-    const label = offset === 0 ? "Hari ini" : offset === 1 ? "Esok" : weekday;
+    const label = offset === 0 ? "Today" : offset === 1 ? "Tomorrow" : weekday;
     return { label, date: shortDate(d), value: `${weekday}, ${shortDate(d)}` };
   });
 }
@@ -29,7 +29,7 @@ export function inquiryTime(iso: string): string {
   const d = new Date(iso);
   const hour = d.getHours() % 12 || 12;
   const minutes = String(d.getMinutes()).padStart(2, "0");
-  return `${shortDate(d)}, ${hour}:${minutes} ${d.getHours() < 12 ? "pg" : "ptg"}`;
+  return `${shortDate(d)}, ${hour}:${minutes} ${d.getHours() < 12 ? "am" : "pm"}`;
 }
 
 export function isValidPhone(phone: string): boolean {

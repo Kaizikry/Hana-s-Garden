@@ -5,10 +5,10 @@
 export const config = {
   shopName: "Hana's Garden",
   ownerName: "Hana",
-  pickupPlace: "Rumah Hana di Kampung Undang, Bukit Payong",
+  pickupPlace: "Hana's house in Kampung Undang, Bukit Payong",
   pickupArea: "Kampung Undang, Bukit Payong",
-  pickupHours: "Setiap hari, 9 pagi – 5 petang",
-  pickupWindows: ["9–11 pagi", "11 pagi–1 tgh hari", "2–5 petang"],
+  pickupHours: "Every day, 9am – 5pm",
+  pickupWindows: ["9–11am", "11am–1pm", "2–5pm"],
   currency: "RM",
 
   /** The Apps Script Web App URL ending in /exec. While empty, the site runs on sample plants. */

@@ -39,7 +39,7 @@ Edit [`src/config.ts`](../src/config.ts). Everything in it is public, so the adm
 
 5. Click **Deploy > New deployment > Web app**, with *Execute as: Me* and *Who has access: Anyone*. Approve the permissions Google asks for.
 6. In Netlify, add the `/exec` URL as the environment variable `VITE_APPS_SCRIPT_URL`, then redeploy.
-7. Log in to admin on the site and press **Masukkan 14 pokok** to add the starter plants. Their names, prices and stock are placeholders, so correct them there.
+7. Log in to admin on the site and press **Add 14 plants** to add the starter plants. Their names, prices and stock are placeholders, so correct them there.
 
 If you change `Code.gs` later, use **Deploy > Manage deployments > Edit > New version**, otherwise the old code keeps running.
 
@@ -49,12 +49,12 @@ The site is hosted on Netlify, connected to this repository. [`netlify.toml`](..
 
 ## Using the admin page
 
-Open **Log masuk admin** in the footer, or add `#/admin` to the site address.
+Open **Admin login** in the footer, or add `#/admin` to the site address.
 
-- **Inventori:** switch a plant between in stock and sold out, or add, edit and delete plants. Photos are shrunk in the browser before uploading.
-- **Pertanyaan:** see every inquiry, move it through Baru, Disahkan and Selesai, and press **Balas** to reply on WhatsApp.
+- **Inventory:** switch a plant between in stock and sold out, or add, edit and delete plants. Photos are shrunk in the browser before uploading.
+- **Inquiries:** see every inquiry, move it through New, Confirmed and Done, and press **Reply** to answer on WhatsApp.
 - After 5 wrong passcodes, admin locks for 15 minutes for everyone, including you. Anyone already logged in stays logged in. To unlock early, delete `pinLockedUntil` from Script properties.
-- A login lasts up to 6 hours, or until **Log keluar**.
+- A login lasts up to 6 hours, or until **Log out**.
 
 ## Security
 
